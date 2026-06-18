@@ -1,4 +1,4 @@
-.PHONY: install lint typecheck test test-unit test-integration eval seed run docker-build docker-up docker-down clean
+.PHONY: install lint typecheck test test-unit test-integration eval seed bootstrap verify-quickstart distill run docker-build docker-up docker-down clean
 
 install:
 	uv venv && uv pip install -e ".[dev]"
@@ -27,8 +27,19 @@ eval:
 	uv run python -m eval.run_suite
 
 seed:
-	uv run python -m data.seed.seed_qdrant
-	uv run python -m data.seed.seed_state
+	uv run python scripts/seed_qdrant.py
+
+## Bootstrap: seed Qdrant + push Langfuse prompts (Wave 2 noop until app.instructions built)
+bootstrap: seed
+	uv run python scripts/langfuse_bootstrap.py
+
+## Verify: end-to-end quickstart smoke test (Steps 3-4 fail until Wave 3)
+verify-quickstart:
+	bash scripts/verify_quickstart.sh
+
+## Distill: convert incident YAMLs into proposed skill / verification rule diffs
+distill:
+	uv run python -m app.learning.incident_distiller
 
 run:
 	uv run python -m app.main
