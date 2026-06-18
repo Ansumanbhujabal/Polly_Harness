@@ -40,6 +40,9 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "pyyaml>=6.0.2",
 
+    # Skill layer frontmatter parser
+    "python-frontmatter>=1.1.0",
+
     # HTTP for tool sandboxing
     "httpx>=0.27.0",
 
