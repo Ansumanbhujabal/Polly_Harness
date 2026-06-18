@@ -137,7 +137,7 @@ All tests run with `pytest -m "unit or integration" tests/test_instructions.py`.
 
 ## Done criteria
 
-- [ ] All 5 module files (`app/instructions/__init__.py`, `app/instructions/loader.py`, `app/instructions/langfuse_sync.py`) + 4 prompt files (`prompts/system_refund_agent.md`, `prompts/intent_classifier.md`, `prompts/denial_rewriter.md`, `prompts/fraud_check_subagent.md`) exist on disk.
+- [ ] All 3 Python module files (`app/instructions/__init__.py`, `app/instructions/loader.py`, `app/instructions/langfuse_sync.py`) + 4 prompt files (`prompts/system_refund_agent.md`, `prompts/intent_classifier.md`, `prompts/denial_rewriter.md`, `prompts/fraud_check_subagent.md`) exist on disk (7 files total).
 - [ ] Public surface matches Contract exports exactly: `from app.instructions import load_system_prompt, load_skill_router_prompt, get_prompt_version` succeeds with no `ImportError`.
 - [ ] All 7 tests pass under `pytest -m "unit or integration" tests/test_instructions.py`.
 - [ ] No imports from `app.graph`, `app.api`, or `app.mcp` anywhere inside `app/instructions/` (one-way dependency only).
