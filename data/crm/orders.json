@@ -1,0 +1,348 @@
+{
+  "schema_version": "1.0",
+  "generated": "2026-06-18",
+  "note": "Dates are relative to today=2026-06-18 to keep return-window scenarios live. item_condition_reported is the warehouse-attested state used by POLICY-006 through POLICY-009.",
+  "orders": [
+    {
+      "order_id": "ORD-1001",
+      "customer_id": "CUST-001",
+      "items": [
+        {"sku": "DSK-MECH-01", "name": "Mechanical Keyboard (TKL, Brown)", "category": "electronics", "qty": 1, "unit_price_usd": 189.00}
+      ],
+      "total_usd": 189.00,
+      "purchase_date": "2026-05-20",
+      "delivery_date": "2026-05-26",
+      "scheduled_delivery_date": "2026-05-25",
+      "status": "delivered",
+      "item_condition_reported": "new_unopened",
+      "payment_method": "card_visa_4242"
+    },
+    {
+      "order_id": "ORD-1002",
+      "customer_id": "CUST-001",
+      "items": [
+        {"sku": "MON-4K-32", "name": "32\" 4K Display", "category": "electronics", "qty": 1, "unit_price_usd": 720.00}
+      ],
+      "total_usd": 720.00,
+      "purchase_date": "2026-04-02",
+      "delivery_date": "2026-04-07",
+      "scheduled_delivery_date": "2026-04-07",
+      "status": "delivered",
+      "item_condition_reported": "new_unopened",
+      "payment_method": "card_visa_4242"
+    },
+    {
+      "order_id": "ORD-1003",
+      "customer_id": "CUST-002",
+      "items": [
+        {"sku": "BAG-LEATHER-S", "name": "Leather Crossbody (Tan)", "category": "accessories", "qty": 1, "unit_price_usd": 145.00}
+      ],
+      "total_usd": 145.00,
+      "purchase_date": "2026-06-08",
+      "delivery_date": "2026-06-12",
+      "scheduled_delivery_date": "2026-06-11",
+      "status": "delivered",
+      "item_condition_reported": "new_unopened",
+      "payment_method": "card_visa_8821"
+    },
+    {
+      "order_id": "ORD-1004",
+      "customer_id": "CUST-002",
+      "items": [
+        {"sku": "EBOOK-PROD-2026", "name": "Productivity Handbook (Digital)", "category": "digital_download", "qty": 1, "unit_price_usd": 19.99}
+      ],
+      "total_usd": 19.99,
+      "purchase_date": "2026-06-15",
+      "delivery_date": "2026-06-15",
+      "scheduled_delivery_date": "2026-06-15",
+      "status": "delivered",
+      "item_condition_reported": "delivered_digital",
+      "payment_method": "card_visa_8821"
+    },
+    {
+      "order_id": "ORD-1005",
+      "customer_id": "CUST-003",
+      "items": [
+        {"sku": "CAM-MIRRORLESS-A1", "name": "Mirrorless Camera Body", "category": "electronics", "qty": 1, "unit_price_usd": 2140.00}
+      ],
+      "total_usd": 2140.00,
+      "purchase_date": "2026-06-10",
+      "delivery_date": "2026-06-14",
+      "scheduled_delivery_date": "2026-06-13",
+      "status": "delivered",
+      "item_condition_reported": "new_unopened",
+      "payment_method": "card_amex_3019"
+    },
+    {
+      "order_id": "ORD-1006",
+      "customer_id": "CUST-004",
+      "items": [
+        {"sku": "HOOD-FLEECE-M", "name": "Fleece Hoodie (Charcoal, M)", "category": "apparel", "qty": 1, "unit_price_usd": 78.00}
+      ],
+      "total_usd": 78.00,
+      "purchase_date": "2026-05-30",
+      "delivery_date": "2026-06-03",
+      "scheduled_delivery_date": "2026-06-02",
+      "status": "delivered",
+      "item_condition_reported": "used",
+      "payment_method": "card_visa_9120"
+    },
+    {
+      "order_id": "ORD-1007",
+      "customer_id": "CUST-004",
+      "items": [
+        {"sku": "SNK-RUN-09", "name": "Running Shoes (10.5)", "category": "footwear", "qty": 1, "unit_price_usd": 132.00}
+      ],
+      "total_usd": 132.00,
+      "purchase_date": "2026-04-15",
+      "delivery_date": "2026-04-21",
+      "scheduled_delivery_date": "2026-04-20",
+      "status": "delivered",
+      "item_condition_reported": "opened_unused",
+      "payment_method": "card_visa_9120"
+    },
+    {
+      "order_id": "ORD-1019",
+      "customer_id": "CUST-005",
+      "items": [
+        {"sku": "PHN-FLAG-13", "name": "Flagship Phone (256GB)", "category": "electronics", "qty": 1, "unit_price_usd": 1099.00}
+      ],
+      "total_usd": 1099.00,
+      "purchase_date": "2026-05-12",
+      "delivery_date": "2026-05-16",
+      "scheduled_delivery_date": "2026-05-15",
+      "status": "delivered_disputed",
+      "item_condition_reported": "new_unopened",
+      "payment_method": "card_visa_5512",
+      "chargeback_ref": "CB-2026-0419"
+    },
+    {
+      "order_id": "ORD-1020",
+      "customer_id": "CUST-006",
+      "items": [
+        {"sku": "HDPHN-NC-PRO", "name": "Noise-Cancelling Headphones (Pro)", "category": "electronics", "qty": 1, "unit_price_usd": 449.00}
+      ],
+      "total_usd": 449.00,
+      "purchase_date": "2026-05-25",
+      "delivery_date": "2026-05-29",
+      "scheduled_delivery_date": "2026-05-28",
+      "status": "delivered",
+      "item_condition_reported": "damaged_on_arrival",
+      "payment_method": "card_amex_7140"
+    },
+    {
+      "order_id": "ORD-1021",
+      "customer_id": "CUST-007",
+      "items": [
+        {"sku": "BOOK-NOVEL-23", "name": "Hardcover Novel", "category": "books", "qty": 2, "unit_price_usd": 18.50}
+      ],
+      "total_usd": 37.00,
+      "purchase_date": "2026-06-09",
+      "delivery_date": "2026-06-14",
+      "scheduled_delivery_date": "2026-06-13",
+      "status": "delivered",
+      "item_condition_reported": "opened_unused",
+      "payment_method": "card_jcb_2210"
+    },
+    {
+      "order_id": "ORD-1022",
+      "customer_id": "CUST-008",
+      "items": [
+        {"sku": "WTCH-SMART-7", "name": "Smartwatch (Series 7)", "category": "electronics", "qty": 1, "unit_price_usd": 329.00}
+      ],
+      "total_usd": 329.00,
+      "purchase_date": "2026-06-05",
+      "delivery_date": "2026-06-10",
+      "scheduled_delivery_date": "2026-06-09",
+      "status": "delivered",
+      "item_condition_reported": "new_unopened",
+      "payment_method": "card_visa_6622"
+    },
+    {
+      "order_id": "ORD-1023",
+      "customer_id": "CUST-009",
+      "items": [
+        {"sku": "BLENDER-PRO-A", "name": "Professional Blender", "category": "home_appliance", "qty": 1, "unit_price_usd": 215.00}
+      ],
+      "total_usd": 215.00,
+      "purchase_date": "2026-04-28",
+      "delivery_date": "2026-05-02",
+      "scheduled_delivery_date": "2026-05-01",
+      "status": "delivered",
+      "item_condition_reported": "used",
+      "payment_method": "card_visa_3344"
+    },
+    {
+      "order_id": "ORD-1024",
+      "customer_id": "CUST-010",
+      "items": [
+        {"sku": "CLR-TEE-FINAL-S", "name": "Clearance Tee (Black, S)", "category": "final_sale", "qty": 3, "unit_price_usd": 8.50}
+      ],
+      "total_usd": 25.50,
+      "purchase_date": "2026-06-04",
+      "delivery_date": "2026-06-09",
+      "scheduled_delivery_date": "2026-06-08",
+      "status": "delivered",
+      "item_condition_reported": "new_unopened",
+      "payment_method": "card_mc_1117"
+    },
+    {
+      "order_id": "ORD-1025",
+      "customer_id": "CUST-011",
+      "items": [
+        {"sku": "LAMP-DESK-LED", "name": "LED Desk Lamp", "category": "home", "qty": 1, "unit_price_usd": 64.00}
+      ],
+      "total_usd": 64.00,
+      "purchase_date": "2026-06-10",
+      "delivery_date": "2026-06-15",
+      "scheduled_delivery_date": "2026-06-14",
+      "status": "delivered",
+      "item_condition_reported": "damaged_on_arrival",
+      "payment_method": "card_visa_2266"
+    },
+    {
+      "order_id": "ORD-1026",
+      "customer_id": "CUST-012",
+      "items": [
+        {"sku": "MNTR-USB-HUB", "name": "USB-C Docking Station", "category": "electronics", "qty": 1, "unit_price_usd": 142.00}
+      ],
+      "total_usd": 142.00,
+      "purchase_date": "2026-06-08",
+      "delivery_date": "2026-06-12",
+      "scheduled_delivery_date": "2026-06-11",
+      "status": "delivered",
+      "item_condition_reported": "new_unopened",
+      "payment_method": "card_visa_4456"
+    },
+    {
+      "order_id": "ORD-1027",
+      "customer_id": "CUST-013",
+      "items": [
+        {"sku": "ESPR-MACHINE-X", "name": "Espresso Machine (Pro)", "category": "home_appliance", "qty": 1, "unit_price_usd": 1199.00}
+      ],
+      "total_usd": 1199.00,
+      "purchase_date": "2026-05-22",
+      "delivery_date": "2026-05-27",
+      "scheduled_delivery_date": "2026-05-26",
+      "status": "delivered",
+      "item_condition_reported": "opened_unused",
+      "payment_method": "card_amex_9911"
+    },
+    {
+      "order_id": "ORD-1028",
+      "customer_id": "CUST-014",
+      "items": [
+        {"sku": "JKT-RAIN-L", "name": "Rain Jacket (Navy, L)", "category": "apparel", "qty": 1, "unit_price_usd": 178.00}
+      ],
+      "total_usd": 178.00,
+      "purchase_date": "2026-04-01",
+      "delivery_date": "2026-04-25",
+      "scheduled_delivery_date": "2026-04-08",
+      "status": "delivered_late",
+      "item_condition_reported": "new_unopened",
+      "payment_method": "card_visa_8800",
+      "carrier_delay_days": 17
+    },
+    {
+      "order_id": "ORD-1029",
+      "customer_id": "CUST-015",
+      "items": [
+        {"sku": "VAC-CORDLESS-V8", "name": "Cordless Vacuum V8", "category": "home_appliance", "qty": 1, "unit_price_usd": 389.00}
+      ],
+      "total_usd": 389.00,
+      "purchase_date": "2026-03-02",
+      "delivery_date": "2026-03-07",
+      "scheduled_delivery_date": "2026-03-06",
+      "status": "delivered",
+      "item_condition_reported": "defect_discovered_post_use",
+      "payment_method": "card_visa_5577",
+      "defect_report_date": "2026-06-10"
+    },
+    {
+      "order_id": "ORD-1030",
+      "customer_id": "CUST-010",
+      "items": [
+        {"sku": "SKN-SERUM-30ML", "name": "Vitamin C Serum (30ml)", "category": "personal_care_opened", "qty": 1, "unit_price_usd": 48.00}
+      ],
+      "total_usd": 48.00,
+      "purchase_date": "2026-06-02",
+      "delivery_date": "2026-06-06",
+      "scheduled_delivery_date": "2026-06-05",
+      "status": "delivered",
+      "item_condition_reported": "opened_unused",
+      "payment_method": "card_mc_1117"
+    },
+    {
+      "order_id": "ORD-1031",
+      "customer_id": "CUST-008",
+      "items": [
+        {"sku": "BTLE-INSUL-1L", "name": "Insulated Bottle 1L", "category": "home", "qty": 1, "unit_price_usd": 32.00}
+      ],
+      "total_usd": 32.00,
+      "purchase_date": "2026-04-10",
+      "delivery_date": "2026-04-14",
+      "scheduled_delivery_date": "2026-04-13",
+      "status": "delivered",
+      "item_condition_reported": "new_unopened",
+      "payment_method": "card_visa_6622"
+    },
+    {
+      "order_id": "ORD-1032",
+      "customer_id": "CUST-006",
+      "items": [
+        {"sku": "TURNTBL-VINYL-2", "name": "Turntable (Belt Drive)", "category": "electronics", "qty": 1, "unit_price_usd": 880.00}
+      ],
+      "total_usd": 880.00,
+      "purchase_date": "2026-06-02",
+      "delivery_date": "2026-06-07",
+      "scheduled_delivery_date": "2026-06-06",
+      "status": "delivered",
+      "item_condition_reported": "new_unopened",
+      "payment_method": "card_amex_7140"
+    },
+    {
+      "order_id": "ORD-1033",
+      "customer_id": "CUST-004",
+      "items": [
+        {"sku": "BPACK-OUTDR-30", "name": "Outdoor Backpack 30L", "category": "outdoor", "qty": 1, "unit_price_usd": 96.00}
+      ],
+      "total_usd": 96.00,
+      "purchase_date": "2026-05-10",
+      "delivery_date": "2026-05-14",
+      "scheduled_delivery_date": "2026-05-13",
+      "status": "delivered",
+      "item_condition_reported": "used",
+      "payment_method": "card_visa_9120",
+      "customer_claim": "item_not_received"
+    },
+    {
+      "order_id": "ORD-1034",
+      "customer_id": "CUST-004",
+      "items": [
+        {"sku": "TSHIRT-PLAIN-XL", "name": "Plain T-Shirt (XL)", "category": "apparel", "qty": 2, "unit_price_usd": 22.00}
+      ],
+      "total_usd": 44.00,
+      "purchase_date": "2026-05-18",
+      "delivery_date": "2026-05-22",
+      "scheduled_delivery_date": "2026-05-21",
+      "status": "delivered",
+      "item_condition_reported": "used",
+      "payment_method": "card_visa_9120",
+      "customer_claim": "item_not_received"
+    },
+    {
+      "order_id": "ORD-1035",
+      "customer_id": "CUST-002",
+      "items": [
+        {"sku": "CAND-SOY-LG", "name": "Soy Candle (Large)", "category": "home", "qty": 2, "unit_price_usd": 28.00}
+      ],
+      "total_usd": 56.00,
+      "purchase_date": "2026-06-01",
+      "delivery_date": "2026-06-06",
+      "scheduled_delivery_date": "2026-06-05",
+      "status": "delivered",
+      "item_condition_reported": "new_unopened",
+      "payment_method": "card_visa_8821"
+    }
+  ]
+}

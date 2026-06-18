@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.installed.cfg
+*.egg
+
+# uv / venv
+.venv/
+venv/
+env/
+.uv-cache/
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.cache
+
+# Mypy / Ruff
+.mypy_cache/
+.ruff_cache/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Data — keep mock data committed, ignore generated state
+data/state.db
+data/state.db-*
+data/qdrant_storage/
+data/incidents/*.yaml
+!data/incidents/.gitkeep
+
+# Observability artifacts
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Frontend build
+frontend/static/dist/
+node_modules/
+
+# HF Spaces
+.gradio/
