@@ -31,8 +31,27 @@ from app.domain.models import (
 )
 
 # ---------------------------------------------------------------------------
-# Helpers: stub LLM factory
+# Helpers
 # ---------------------------------------------------------------------------
+
+
+def get_field(obj: Any, field: str) -> Any:
+    """Get a field from either a Pydantic model or a dict."""
+    if obj is None:
+        return None
+    if isinstance(obj, dict):
+        return obj.get(field)
+    return getattr(obj, field, None)
+
+
+def get_kind_str(decision: Any) -> str | None:
+    """Get the string value of a decision's kind field."""
+    if decision is None:
+        return None
+    kind = get_field(decision, "kind")
+    if kind is None:
+        return None
+    return kind.value if hasattr(kind, "value") else str(kind)
 
 
 def make_stub_llm(responses: list[str] | None = None) -> BaseLanguageModel:
@@ -115,11 +134,10 @@ async def test_interrupt_and_resume_for_above_cap_refund(
     """
     from app.graph import build_graph
 
-    # Use CUST-001 (VIP, cap=$500) with a large order
-    # We'll synthesize a large order above $500
-    cust = next(c for c in all_customers if c.customer_id == "CUST-001")
-    # ORD-1002 belongs to CUST-001, total=$720, above $500 VIP cap
-    order = next(o for o in all_orders if o.order_id == "ORD-1002")
+    # Use CUST-013 (VIP, cap=$500) + ORD-1027 ($1199, 27 days old, within 60d VIP window)
+    # ORD-1027 is above $500 VIP cap AND within return window — triggers interrupt
+    cust = next(c for c in all_customers if c.customer_id == "CUST-013")
+    order = next(o for o in all_orders if o.order_id == "ORD-1027")
 
     stub_llm = make_stub_llm(["refund_request"])
     graph = await build_graph(llm=stub_llm)
@@ -137,17 +155,22 @@ async def test_interrupt_and_resume_for_above_cap_refund(
 
     # --- First invoke: should suspend at await_human_approval ---
     result = await graph.ainvoke(initial_state, config)
-    assert result.get("awaiting_human_approval") is True, (
-        "Graph must suspend with awaiting_human_approval=True for above-cap refund"
+    # LangGraph signals interrupt via __interrupt__ in the returned dict.
+    # Additionally, the graph sets awaiting_human_approval=True in the pre-approval node.
+    is_interrupted = "__interrupt__" in result or result.get("awaiting_human_approval") is True
+    assert is_interrupted, (
+        "Graph must suspend (via __interrupt__ or awaiting_human_approval=True) for above-cap refund"
     )
 
     # --- Resume with "approved" → should issue refund ---
     from langgraph.types import Command
 
     approved_state = await graph.ainvoke(Command(resume="approved"), config)
-    assert approved_state.get("awaiting_human_approval") is False or approved_state.get(
-        "approval_resolution"
-    ) == "approved", "After approved resume, awaiting_human_approval must be resolved"
+    assert (
+        approved_state.get("awaiting_human_approval") is False
+        or approved_state.get("approval_resolution") == "approved"
+        or "__interrupt__" not in approved_state
+    ), "After approved resume, graph must have completed (no pending interrupt)"
     final = approved_state.get("final_decision")
     assert final is not None, "final_decision must be set after approved resume"
 
@@ -156,25 +179,36 @@ async def test_interrupt_and_resume_for_above_cap_refund(
     config_denied = {"configurable": {"thread_id": cid_denied}}
     initial_state_denied = AgentState(
         conversation_id=cid_denied,
-        messages=[{"role": "user", "content": "I want to return my order ORD-1002"}],
+        messages=[{"role": "user", "content": "I want to return my order ORD-1027"}],
         customer=cust,
         order=order,
         intent="refund_request",
     )
     stub_llm2 = make_stub_llm(["refund_request"])
     graph2 = await build_graph(llm=stub_llm2)
-    result_denied = await graph2.ainvoke(initial_state_denied, config_denied)
-    assert result_denied.get("awaiting_human_approval") is True
+    result_denied_first = await graph2.ainvoke(initial_state_denied, config_denied)  # type: ignore[arg-type]
+    is_interrupted_denied = (
+        "__interrupt__" in result_denied_first
+        or result_denied_first.get("awaiting_human_approval") is True
+    )
+    assert is_interrupted_denied, "Denied test: graph must suspend for above-cap refund"
 
     denied_state = await graph2.ainvoke(Command(resume="denied"), config_denied)
     # After denial, no refund should be issued; response_text or escalation should be present
     denied_final = denied_state.get("final_decision")
     # Denied path should either have no final_decision or have an escalate kind
     if denied_final is not None:
-        assert denied_final.get("kind") in (
+        # final_decision may be a RefundDecision model or a dict
+        kind_val = (
+            denied_final.kind
+            if hasattr(denied_final, "kind")
+            else denied_final.get("kind")
+        )
+        kind_str = kind_val.value if hasattr(kind_val, "value") else str(kind_val)
+        assert kind_str in (
             RefundDecisionKind.ESCALATE.value,
             "escalate",
-        ), f"Denied path must escalate, got {denied_final.get('kind')}"
+        ), f"Denied path must escalate, got {kind_str}"
 
 
 # ---------------------------------------------------------------------------
@@ -215,10 +249,10 @@ async def test_graph_happy_path_standard_refund_under_cap(
     )
     final = result.get("final_decision")
     assert final is not None, "final_decision must be set on happy path"
-    assert final.get("kind") in (
+    assert get_kind_str(final) in (
         RefundDecisionKind.APPROVE_FULL.value,
         "approve_full",
-    ), f"Expected full refund, got {final.get('kind')}"
+    ), f"Expected full refund, got {get_kind_str(final)}"
 
 
 @pytest.mark.integration
@@ -274,10 +308,10 @@ async def test_blocked_verification_routes_to_escalate(
     final = result.get("final_decision")
     assert not result.get("awaiting_human_approval"), "Blocked refund should not await approval"
     if final is not None:
-        assert final.get("kind") in (
+        assert get_kind_str(final) in (
             RefundDecisionKind.ESCALATE.value,
             "escalate",
-        ), f"Blocked verification must escalate, got {final.get('kind')}"
+        ), f"Blocked verification must escalate, got {get_kind_str(final)}"
 
 
 @pytest.mark.integration
@@ -311,10 +345,10 @@ async def test_fraud_check_high_routes_to_escalate(
     final = result.get("final_decision")
     assert not result.get("awaiting_human_approval"), "High-fraud should not await approval"
     if final is not None:
-        assert final.get("kind") in (
+        assert get_kind_str(final) in (
             RefundDecisionKind.ESCALATE.value,
             "escalate",
-        ), f"High-fraud must escalate, got {final.get('kind')}"
+        ), f"High-fraud must escalate, got {get_kind_str(final)}"
 
 
 @pytest.mark.integration
@@ -397,10 +431,10 @@ async def test_customer_identity_mismatch_blocks_refund(
     final = result.get("final_decision")
     assert not result.get("awaiting_human_approval"), "Identity mismatch should not await approval"
     if final is not None:
-        assert final.get("kind") in (
+        assert get_kind_str(final) in (
             RefundDecisionKind.ESCALATE.value,
             "escalate",
-        ), f"Identity mismatch must escalate, got {final.get('kind')}"
+        ), f"Identity mismatch must escalate, got {get_kind_str(final)}"
 
 
 @pytest.mark.integration
@@ -476,12 +510,12 @@ async def test_vip_60d_return_window_applied(
     # VIP customer should be approved (60-day window, order is 29 days old as of 2026-06-18)
     final = result.get("final_decision")
     assert final is not None, "VIP refund must produce a final decision"
-    assert final.get("kind") in (
+    assert get_kind_str(final) in (
         RefundDecisionKind.APPROVE_FULL.value,
         "approve_full",
         RefundDecisionKind.APPROVE_PARTIAL.value,
         "approve_partial",
-    ), f"VIP 60-day window order must be approved, got {final.get('kind')}"
+    ), f"VIP 60-day window order must be approved, got {get_kind_str(final)}"
 
 
 @pytest.mark.integration
@@ -551,9 +585,9 @@ async def test_state_persists_across_session_via_checkpointer(
     """Invoke graph, close, re-open, resume from checkpoint; final state matches."""
     from app.graph import build_graph
 
-    cust = next(c for c in all_customers if c.customer_id == "CUST-001")
-    # Use ORD-1002 ($720) to trigger an interrupt we can then resume
-    order = next(o for o in all_orders if o.order_id == "ORD-1002")
+    cust = next(c for c in all_customers if c.customer_id == "CUST-013")
+    # Use ORD-1027 ($1199, within 60d VIP window) to trigger an interrupt we can then resume
+    order = next(o for o in all_orders if o.order_id == "ORD-1027")
 
     stub_llm = make_stub_llm(["refund_request"])
     graph = await build_graph(llm=stub_llm)
@@ -563,7 +597,7 @@ async def test_state_persists_across_session_via_checkpointer(
 
     state = AgentState(
         conversation_id=cid,
-        messages=[{"role": "user", "content": "I want a refund for ORD-1002"}],
+        messages=[{"role": "user", "content": "I want a refund for ORD-1027"}],
         customer=cust,
         order=order,
         intent="refund_request",
@@ -571,7 +605,7 @@ async def test_state_persists_across_session_via_checkpointer(
 
     # First run — should interrupt for above-cap amount
     result1 = await graph.ainvoke(state, config)
-    is_interrupted = result1.get("awaiting_human_approval", False)
+    is_interrupted = "__interrupt__" in result1 or result1.get("awaiting_human_approval", False)
 
     if is_interrupted:
         # Verify state is checkpointed by resuming on a new graph instance
