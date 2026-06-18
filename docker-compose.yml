@@ -1,35 +1,43 @@
 version: "3.9"
 
 # Local-dev compose. Production deploy is single-container (see Dockerfile + HF Spaces).
-# This file makes Qdrant available as a separate process for faster local iteration.
+# Qdrant runs on a private bridge network — it is NOT published to the host.
+# Only the app service publishes a port (7860).
 
 services:
-  qdrant:
-    image: qdrant/qdrant:v1.12.4
-    container_name: refund-harness-qdrant
-    ports:
-      - "6333:6333"
-      - "6334:6334"
-    volumes:
-      - qdrant_storage:/qdrant/storage
-    restart: unless-stopped
-
   app:
     build: .
     container_name: refund-harness-app
-    depends_on:
-      - qdrant
+    ports:
+      - "7860:7860"
     env_file:
       - .env
     environment:
       - QDRANT_URL=http://qdrant:6333
-    ports:
-      - "7860:7860"
+    depends_on:
+      - qdrant
+    networks:
+      - refund_net
+    restart: unless-stopped
     volumes:
       - ./data:/app/data
       - ./prompts:/app/prompts
       - ./skills:/app/skills
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    container_name: refund-harness-qdrant
+    expose:
+      - "6333"
+    networks:
+      - refund_net
+    volumes:
+      - qdrant_data:/qdrant/storage
     restart: unless-stopped
 
+networks:
+  refund_net:
+    driver: bridge
+
 volumes:
-  qdrant_storage:
+  qdrant_data:

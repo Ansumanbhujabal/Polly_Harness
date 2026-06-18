@@ -1,38 +1,57 @@
-# Single-image deploy target for Hugging Face Spaces (Docker SDK).
-# Runs FastAPI + Gradio + embedded Qdrant in one container. Listens on 7860 (HF default).
+# Multi-stage Dockerfile for Hugging Face Spaces (Docker SDK).
+# Runs FastAPI + Gradio on port 7860 (HF default).
+# Final image: python:3.11-slim, non-root appuser (uid 1000), no uv, no build artifacts.
 
-FROM python:3.11-slim AS base
+# --- builder stage ---
+FROM python:3.11-slim AS builder
 
-# System deps (minimal)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates build-essential \
+    build-essential \
  && rm -rf /var/lib/apt/lists/*
 
-# uv (fast dependency manager)
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+RUN pip install uv
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
+
+# --- runtime stage ---
+FROM python:3.11-slim AS runtime
+
+# System deps needed at runtime (curl for HEALTHCHECK, ca-certs for TLS)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+# Non-root user (uid 1000)
+RUN useradd --uid 1000 --create-home appuser
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    UV_SYSTEM_PYTHON=1 \
-    UV_LINK_MODE=copy \
+    PATH="/app/.venv/bin:$PATH" \
     PORT=7860 \
     GRADIO_SERVER_NAME=0.0.0.0 \
     GRADIO_SERVER_PORT=7860
 
 WORKDIR /app
 
-# Install deps first for layer caching
-COPY pyproject.toml uv.lock* ./
-RUN uv pip install --system -e .
+# Copy the pre-built venv from builder — no uv, no build tools in final image
+COPY --from=builder /app/.venv /app/.venv
 
-# Copy source
-COPY . .
+# Copy only production paths; .git/ and tests/ are intentionally excluded
+COPY --chown=appuser:appuser app/ ./app/
+COPY --chown=appuser:appuser data/ ./data/
+COPY --chown=appuser:appuser scripts/ ./scripts/
+COPY --chown=appuser:appuser prompts/ ./prompts/
+COPY --chown=appuser:appuser skills/ ./skills/
+COPY --chown=appuser:appuser agentic.md ./agentic.md
 
-# Pre-seed Qdrant collection on container start (idempotent)
+USER appuser
+
 EXPOSE 7860
 
-# Healthcheck: FastAPI mounted under Gradio exposes /healthz
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD curl -fsS http://localhost:7860/healthz || exit 1
 
-CMD ["python", "-m", "app.main"]
+CMD ["uvicorn", "app.api.main:app", "--host", "0.0.0.0", "--port", "7860"]
