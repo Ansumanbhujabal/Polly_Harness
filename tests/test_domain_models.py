@@ -12,6 +12,7 @@ from app.domain.models import (
     Customer,
     CustomerTier,
     EscalationRecord,
+    FraudCheckResult,
     IncidentRecord,
     LayerEvent,
     LayerName,
@@ -264,3 +265,55 @@ def test_pending_approval_defaults_and_round_trip():
     assert restored.approval_id == "APR-001"
     assert restored.candidate_decision.amount_usd == pytest.approx(350.0)
     assert restored.resolution is None
+
+
+# --------------------------------------------------------------------------- #
+# FraudCheckResult (L7 sub-agent output)
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.unit
+def test_fraud_check_result_round_trip_json():
+    """FraudCheckResult is the only thing that crosses from L7 to the parent graph."""
+    result = FraudCheckResult(
+        risk_score=0.80,
+        risk_factors=["serial_refunder_90d", "amount_vs_ltv_high"],
+        recommendation="escalate",
+        summary="Customer has 6 refunds in 90 days and refund exceeds 50% of lifetime value.",
+    )
+
+    assert result.risk_score == pytest.approx(0.80)
+    assert "serial_refunder_90d" in result.risk_factors
+    assert result.recommendation == "escalate"
+
+    data = result.model_dump_json()
+    restored = FraudCheckResult.model_validate_json(data)
+    assert restored.risk_score == pytest.approx(0.80)
+    assert restored.risk_factors == result.risk_factors
+    assert restored.recommendation == "escalate"
+    assert restored.summary == result.summary
+
+
+@pytest.mark.unit
+def test_fraud_check_result_rejects_out_of_range_score():
+    """risk_score must be in [0.0, 1.0] per the Field constraint."""
+    with pytest.raises(Exception):  # pydantic ValidationError
+        FraudCheckResult(
+            risk_score=1.5,
+            risk_factors=[],
+            recommendation="escalate",
+            summary="Impossible score.",
+        )
+
+
+@pytest.mark.unit
+def test_fraud_check_result_proceed_recommendation():
+    """A low-risk result uses recommendation='proceed'."""
+    result = FraudCheckResult(
+        risk_score=0.10,
+        risk_factors=[],
+        recommendation="proceed",
+        summary="No fraud signals detected.",
+    )
+    assert result.recommendation == "proceed"
+    assert result.risk_factors == []
