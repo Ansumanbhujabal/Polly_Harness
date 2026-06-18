@@ -87,6 +87,8 @@ async def test_push_event_writes_to_ring_buffer():
 @pytest.mark.asyncio
 async def test_sse_event_stream_replays_buffered_then_tails_live():
     """push 2 pre-stream events, start streaming, push 1 live; assert 2+1 order."""
+    import json
+
     from app.observability import push_event, sse_event_stream
     from app.observability.sse_publisher import _reset_state_for_testing
 
@@ -101,23 +103,24 @@ async def test_sse_event_stream_replays_buffered_then_tails_live():
 
     results: list[Any] = []
 
-    async def collect_and_push() -> None:
-        # Start collecting; after first 2 (buffered) push a live event
-        async with asyncio.timeout(2.0):
+    async def stream_collector() -> None:
+        """Consume 3 items from sse_event_stream."""
+        async with asyncio.timeout(3.0):
             async for item in sse_event_stream(conversation_id="conv-rt2"):
                 results.append(item)
-                if len(results) == 2:
-                    # Signal live event
-                    push_event(ev3)
                 if len(results) >= 3:
                     break
 
-    await collect_and_push()
+    async def delayed_push() -> None:
+        """Wait a tick then push the live event."""
+        await asyncio.sleep(0.05)
+        push_event(ev3)
+
+    # Run both concurrently: the stream replays 2 buffered, then waits;
+    # delayed_push fires ev3 while the stream is waiting.
+    await asyncio.gather(stream_collector(), delayed_push())
 
     assert len(results) == 3
-    # Data should appear in push order: ev1, ev2, ev3
-    import json
-
     first_data = json.loads(results[0].data)
     second_data = json.loads(results[1].data)
     third_data = json.loads(results[2].data)
