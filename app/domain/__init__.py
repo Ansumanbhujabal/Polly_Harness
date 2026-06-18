@@ -1,0 +1,36 @@
+"""Cross-cutting domain models. Every layer imports from here."""
+from app.domain.models import (
+    AgentState,
+    Customer,
+    CustomerTier,
+    IncidentRecord,
+    Item,
+    LayerEvent,
+    LayerName,
+    Order,
+    OrderStatus,
+    PolicyClause,
+    RefundDecision,
+    RefundDecisionKind,
+    ToolInvocation,
+    VerificationCheck,
+    VerificationResult,
+)
+
+__all__ = [
+    "AgentState",
+    "Customer",
+    "CustomerTier",
+    "IncidentRecord",
+    "Item",
+    "LayerEvent",
+    "LayerName",
+    "Order",
+    "OrderStatus",
+    "PolicyClause",
+    "RefundDecision",
+    "RefundDecisionKind",
+    "ToolInvocation",
+    "VerificationCheck",
+    "VerificationResult",
+]
