@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     LANGFUSE_PUBLIC_KEY: str = ""
     LANGFUSE_SECRET_KEY: str = ""
     LANGFUSE_HOST: str = "https://cloud.langfuse.com"
+    PROMPT_CACHE_TTL_SECONDS: int = 300
+    LANGFUSE_PROMPT_AUTOSYNC: bool = False
 
     # Qdrant
     QDRANT_URL: str = "http://localhost:6333"
