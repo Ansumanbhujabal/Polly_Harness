@@ -253,3 +253,54 @@ class IncidentRecord(BaseModel):
     detail: dict[str, Any] = Field(default_factory=dict)
     proposed_remediation: str | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+# --------------------------------------------------------------------------- #
+# L5 Durable State models — persisted to SQLite by app/state/repositories.py
+# --------------------------------------------------------------------------- #
+
+
+class RefundRecord(BaseModel):
+    """A successfully issued refund, persisted to the `refunds` table.
+
+    Business key: (conversation_id, order_id) — insert-or-noop on duplicate.
+    """
+
+    model_config = ConfigDict(use_enum_values=True)
+
+    refund_id: str
+    conversation_id: str
+    order_id: str
+    customer_id: str
+    amount_usd: float
+    kind: RefundDecisionKind
+    cited_clauses: list[str] = Field(default_factory=list)
+    reasoning: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class EscalationRecord(BaseModel):
+    """A human-handoff record, persisted to the `escalations` table."""
+
+    escalation_id: str
+    conversation_id: str
+    reason_code: str
+    severity: Literal["low", "medium", "high"] = "medium"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class PendingApproval(BaseModel):
+    """A decision awaiting human approval, persisted to the `pending_approvals` table.
+
+    `resolution` is NULL until a human approves or denies.
+    `resolve_approval()` on the Repository flips the row to a terminal state.
+    """
+
+    approval_id: str
+    conversation_id: str
+    candidate_decision: RefundDecision
+    required_approver_role: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    resolution: Literal["approved", "denied", None] = None
+    approver: str | None = None
+    resolved_at: datetime | None = None
