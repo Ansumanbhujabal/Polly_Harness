@@ -20,6 +20,7 @@ from app.domain.models import (
     OrderStatus,
     PendingApproval,
     PolicyClause,
+    ProposedRemediation,
     RefundDecision,
     RefundDecisionKind,
     RefundRecord,
@@ -317,3 +318,60 @@ def test_fraud_check_result_proceed_recommendation():
     )
     assert result.recommendation == "proceed"
     assert result.risk_factors == []
+
+
+# --------------------------------------------------------------------------- #
+# ProposedRemediation (D3 — Incident Loop distiller)
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.unit
+def test_proposed_remediation_round_trip_json():
+    """ProposedRemediation must survive a model_dump_json / model_validate_json cycle."""
+    proposal = ProposedRemediation(
+        kind="policy_clarification",
+        target_file="data/policy/refund_policy_v1.md",
+        markdown_diff="--- a/file\n+++ b/file\n@@ -1 +1,2 @@\n line\n+new line\n",
+        justification="Three incidents revealed a gap in the return window policy.",
+        source_incident_ids=["inc-001", "inc-002"],
+    )
+    assert proposal.kind == "policy_clarification"
+    assert proposal.target_file == "data/policy/refund_policy_v1.md"
+    assert "inc-001" in proposal.source_incident_ids
+
+    data = proposal.model_dump_json()
+    restored = ProposedRemediation.model_validate_json(data)
+    assert restored.kind == "policy_clarification"
+    assert restored.target_file == proposal.target_file
+    assert restored.markdown_diff == proposal.markdown_diff
+    assert restored.justification == proposal.justification
+    assert restored.source_incident_ids == proposal.source_incident_ids
+    assert restored.created_at == proposal.created_at
+
+
+@pytest.mark.unit
+def test_proposed_remediation_new_skill_kind():
+    """new_skill proposals target a skills/ path."""
+    proposal = ProposedRemediation(
+        kind="new_skill",
+        target_file="skills/handle_vip_grace.md",
+        markdown_diff="--- /dev/null\n+++ b/skills/handle_vip_grace.md\n@@ -0,0 +1 @@\n+content\n",
+        justification="VIP grace period skill missing from registry.",
+        source_incident_ids=["inc-003"],
+    )
+    assert proposal.kind == "new_skill"
+    assert proposal.target_file.startswith("skills/")
+
+
+@pytest.mark.unit
+def test_proposed_remediation_new_verification_rule_kind():
+    """new_verification_rule proposals target app/verification/checks/."""
+    proposal = ProposedRemediation(
+        kind="new_verification_rule",
+        target_file="app/verification/checks/premium_window_check.py",
+        markdown_diff="--- /dev/null\n+++ b/app/verification/checks/premium_window_check.py\n@@ -0,0 +1 @@\n+# check\n",
+        justification="Premium tier return window not validated.",
+        source_incident_ids=["inc-004", "inc-005"],
+    )
+    assert proposal.kind == "new_verification_rule"
+    assert proposal.target_file.endswith(".py")

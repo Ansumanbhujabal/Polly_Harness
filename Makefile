@@ -39,7 +39,7 @@ verify-quickstart:
 
 ## Distill: convert incident YAMLs into proposed skill / verification rule diffs
 distill:
-	uv run python -m app.learning.incident_distiller
+	uv run python -m app.learning.distill_cli
 
 run:
 	uv run python -m app.main
