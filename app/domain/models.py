@@ -260,6 +260,20 @@ class IncidentRecord(BaseModel):
 # --------------------------------------------------------------------------- #
 
 
+class FraudCheckResult(BaseModel):
+    """Output of the L7 fraud-check sub-agent.
+
+    The parent graph stores ONLY this object — never the raw refund_history list.
+    That isolation is the entire point of L7: protect the parent's context budget
+    from a potentially-long refund-history payload.
+    """
+
+    risk_score: float = Field(..., ge=0.0, le=1.0)
+    risk_factors: list[str]  # ordered, highest-weight first
+    recommendation: Literal["proceed", "escalate"]
+    summary: str  # LLM-narrated, ≤ 2 sentences
+
+
 class RefundRecord(BaseModel):
     """A successfully issued refund, persisted to the `refunds` table.
 
