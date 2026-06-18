@@ -25,6 +25,15 @@ from app.observability.structured_logger import get_logger
 
 logger = get_logger(__name__)
 
+# Imported at module level so tests can patch ``app.observability.layer_event_emitter.push_event``.
+# The actual implementation lives in sse_publisher; this name is just a re-export alias.
+# Use a late import to avoid circular imports at startup — the name is assigned below.
+try:
+    from app.observability.sse_publisher import push_event  # noqa: F401
+except ImportError:  # pragma: no cover
+    def push_event(event: LayerEvent) -> None:  # type: ignore[misc]
+        pass
+
 Sink = Callable[[LayerEvent], Awaitable[None] | None]
 
 
@@ -69,6 +78,14 @@ class LayerEventEmitter:
                 "event_type": event_type,
             },
         )
+        # Fan out through the observability spine (SSE + Langfuse + structured log).
+        # Use the module-level name so tests can patch it via
+        # ``app.observability.layer_event_emitter.push_event``.
+        try:
+            push_event(event)
+        except Exception as exc:  # noqa: BLE001 — push_event must never poison emitter
+            logger.warning("push_event_error", extra={"error": str(exc)})
+
         for sink in list(self._sinks):
             try:
                 result = sink(event)
