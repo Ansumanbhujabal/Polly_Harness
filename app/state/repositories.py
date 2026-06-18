@@ -248,6 +248,69 @@ class Repository:
             return self._row_to_approval(cursor2.fetchone())
 
     # ------------------------------------------------------------------
+    # Processed incidents
+    # ------------------------------------------------------------------
+
+    def mark_incident_processed(self, incident_id: str, batch_id: str = "") -> None:
+        """Insert a processed_incidents row. Noop if already present.
+
+        Args:
+            incident_id: The incident to mark as processed.
+            batch_id: Optional batch identifier for grouping runs.
+        """
+        with self._lock:
+            cursor = self._conn.execute(
+                "SELECT incident_id FROM processed_incidents WHERE incident_id = ?",
+                (incident_id,),
+            )
+            if cursor.fetchone() is not None:
+                return  # already marked — idempotent
+
+            self._conn.execute(
+                "INSERT INTO processed_incidents (incident_id, processed_at, batch_id) "
+                "VALUES (?, ?, ?)",
+                (incident_id, datetime.utcnow().isoformat(), batch_id),
+            )
+            self._conn.commit()
+        self._emit_write("processed_incidents", incident_id)
+
+    def list_unprocessed_incidents(self, min_age_minutes: int = 60) -> list[IncidentRecord]:
+        """Return incidents older than min_age_minutes that have not been processed.
+
+        Incidents are ordered by created_at ascending (oldest first).
+        """
+        from datetime import timedelta
+
+        cutoff = (datetime.utcnow() - timedelta(minutes=min_age_minutes)).isoformat()
+        with self._lock:
+            cursor = self._conn.execute(
+                "SELECT incident_id, conversation_id, triggered_by, layer, "
+                "summary, detail, proposed_remediation, created_at "
+                "FROM incidents "
+                "WHERE created_at <= ? "
+                "AND incident_id NOT IN (SELECT incident_id FROM processed_incidents) "
+                "ORDER BY created_at ASC",
+                (cutoff,),
+            )
+            rows = cursor.fetchall()
+
+        result: list[IncidentRecord] = []
+        for row in rows:
+            result.append(
+                IncidentRecord(
+                    incident_id=row[0],
+                    conversation_id=row[1],
+                    triggered_by=row[2],  # type: ignore[arg-type]
+                    layer=LayerName(row[3]),
+                    summary=row[4],
+                    detail=json.loads(row[5]) if row[5] else {},
+                    proposed_remediation=row[6],
+                    created_at=datetime.fromisoformat(row[7]),
+                )
+            )
+        return result
+
+    # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
 
