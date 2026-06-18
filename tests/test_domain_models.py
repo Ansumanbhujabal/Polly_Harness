@@ -11,14 +11,17 @@ from app.domain.models import (
     AgentState,
     Customer,
     CustomerTier,
+    EscalationRecord,
     IncidentRecord,
     LayerEvent,
     LayerName,
     Order,
     OrderStatus,
+    PendingApproval,
     PolicyClause,
     RefundDecision,
     RefundDecisionKind,
+    RefundRecord,
     VerificationCheck,
     VerificationResult,
 )
@@ -193,3 +196,71 @@ def test_incident_record_minimal():
         summary="Injection detected on customer message",
     )
     assert inc.layer == LayerName.VERIFICATION
+
+
+# --------------------------------------------------------------------------- #
+# L5 domain models: RefundRecord, EscalationRecord, PendingApproval
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.unit
+def test_refund_record_round_trip_json():
+    record = RefundRecord(
+        refund_id="RFD-001",
+        conversation_id="CONV-A",
+        order_id="ORD-1001",
+        customer_id="CUST-007",
+        amount_usd=89.50,
+        kind=RefundDecisionKind.APPROVE_PARTIAL,
+        cited_clauses=["POLICY-001", "POLICY-008"],
+        reasoning="Item returned within 10-day window; partial for used condition.",
+    )
+    data = record.model_dump_json()
+    restored = RefundRecord.model_validate_json(data)
+    assert restored.refund_id == "RFD-001"
+    assert restored.amount_usd == pytest.approx(89.50)
+    assert restored.kind == RefundDecisionKind.APPROVE_PARTIAL.value
+    assert "POLICY-008" in restored.cited_clauses
+    assert isinstance(restored.created_at, type(record.created_at))
+
+
+@pytest.mark.unit
+def test_escalation_record_defaults_and_round_trip():
+    esc = EscalationRecord(
+        escalation_id="ESC-001",
+        conversation_id="CONV-B",
+        reason_code="CHARGEBACK_ACTIVE",
+    )
+    assert esc.severity == "medium"  # default
+
+    data = esc.model_dump_json()
+    restored = EscalationRecord.model_validate_json(data)
+    assert restored.escalation_id == "ESC-001"
+    assert restored.reason_code == "CHARGEBACK_ACTIVE"
+    assert restored.severity == "medium"
+
+
+@pytest.mark.unit
+def test_pending_approval_defaults_and_round_trip():
+    decision = RefundDecision(
+        kind=RefundDecisionKind.APPROVE_FULL,
+        amount_usd=350.0,
+        reason_summary="Full refund within VIP window",
+        cited_clause_ids=["POLICY-002"],
+        requires_human_approval=True,
+    )
+    approval = PendingApproval(
+        approval_id="APR-001",
+        conversation_id="CONV-C",
+        candidate_decision=decision,
+        required_approver_role="senior_agent",
+    )
+    assert approval.resolution is None
+    assert approval.approver is None
+    assert approval.resolved_at is None
+
+    data = approval.model_dump_json()
+    restored = PendingApproval.model_validate_json(data)
+    assert restored.approval_id == "APR-001"
+    assert restored.candidate_decision.amount_usd == pytest.approx(350.0)
+    assert restored.resolution is None
