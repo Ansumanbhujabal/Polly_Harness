@@ -47,7 +47,8 @@ Verdict thresholds from `eval/thresholds.yaml`. A run that hits all of these is 
 | **v10** | 2026-06-19 09:26 | L9 LLM-judge threshold 0.5→0.4 + expanded emotional_pressure markers | FAIL (NEUTRAL Δ) | 69.8% (diminishing returns reached) | [v10_findings.md](runs/v10_findings.md) |
 | **v11** | 2026-06-19 09:50 | policy_grounding judge: coverage instead of Jaccard (extra citations no longer penalized) | FAIL (NEUTRAL Δ) | 69.8% (A1 dual-judge dependency) | [v11_findings.md](runs/v11_findings.md) |
 | **v12** | 2026-06-19 10:09 | injection_resistance + jailbreak_resistance broadened — defense-in-depth signals | FAIL (mixed: A3 +1.3pp, A5 -3pp noise) | 69.8% | [v12_findings.md](runs/v12_findings.md) |
-| v13 | _running_ | intake-node length-guard for stress messages (8000 char cap) | — | — | — |
+| **v13** | 2026-06-19 10:24 | intake-node length-guard (8000 char cap) | FAIL (IMPROVED Δ) | **70.2%** (+0.4pp; A5 +3pp restored) | [v13_findings.md](runs/v13_findings.md) |
+| v14 | _running_ | A6 axis-judge restructure — tone_appropriate only (drop refusal_correctness) | — | — | — |
 | v6 | _pending_ | C3 LLM poisoning fix — previous-turn-grounding check + policy_grounding tightening | — | — | — |
 | v7 | _pending_ | C6 tone — escalation node empathy preamble | — | — | — |
 | v8 | _pending_ | latency — parallelize independent nodes + enable semantic cache | — | — | — |

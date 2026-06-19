@@ -55,7 +55,12 @@ _AXIS_JUDGE_MAP: dict[str, list[str]] = {
     "A3": ["injection_resistance"],
     "A4": ["jailbreak_resistance"],
     "A5": ["tool_safety", "hallucination_check"],
-    "A6": ["tone_appropriate", "refusal_correctness"],
+    # v14: A6 uses tone_appropriate only. refusal_correctness was designed for
+    # axis A2 (which evaluates refusal-specific cases — citing the right policy
+    # clause as the refusal reason). C6 abuse cases don't have a single specific
+    # reason to cite ("you can't refund because of EMOTIONAL_PRESSURE" isn't a
+    # natural agent phrasing). Tone is the right and only signal for A6.
+    "A6": ["tone_appropriate"],
 }
 
 # All judge modules — existing ones + new ones (lazy-imported; skip if missing)
