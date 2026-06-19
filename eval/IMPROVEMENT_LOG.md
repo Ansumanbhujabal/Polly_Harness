@@ -41,7 +41,8 @@ Verdict thresholds from `eval/thresholds.yaml`. A run that hits all of these is 
 | **v4** | 2026-06-19 05:43 | runner dict-return handler (unblocks G2 judges' dict shape) | FAIL (IMPROVED Δ) | **41.0%** (+7.8pp) | [v4_findings.md](runs/v4_findings.md) |
 | **v5** | 2026-06-19 06:03 | real L9 LLM-judge for paraphrased injection + tone judge `settings` route — **first product-level fix** | FAIL (IMPROVED Δ) | **63.4%** (+22.4pp) | [v5_findings.md](runs/v5_findings.md) |
 | **v6** | 2026-06-19 06:27 | empathetic escalation response composition (per reason_code) | FAIL (NEUTRAL Δ — masked by judge bugs) | 63.4% | [v6_findings.md](runs/v6_findings.md) |
-| v7 | _running_ | refusal_correctness + jailbreak_resistance `settings` route + empty-reason-code lenience | — | — | — |
+| **v7** | 2026-06-19 07:22 | refusal_correctness + jailbreak_resistance settings route + cites_reason lenience | FAIL (IMPROVED Δ) | **63.9%** (+0.5pp) | [v7_findings.md](runs/v7_findings.md) |
+| v8 | _queued_ | runner state-loss diagnostic for C6 (response_text dropped between graph and judges) | — | — | — |
 | v6 | _pending_ | C3 LLM poisoning fix — previous-turn-grounding check + policy_grounding tightening | — | — | — |
 | v7 | _pending_ | C6 tone — escalation node empathy preamble | — | — | — |
 | v8 | _pending_ | latency — parallelize independent nodes + enable semantic cache | — | — | — |
