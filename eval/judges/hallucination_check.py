@@ -19,6 +19,11 @@ import re
 
 from app.domain.models import AgentState
 
+def _attr(state, name, default=None):
+    if isinstance(state, dict):
+        return state.get(name, default)
+    return getattr(state, name, default)
+
 logger = logging.getLogger(__name__)
 
 LANGFUSE_PROMPT_NAME = "eval.hallucination_check.v1"
@@ -33,23 +38,22 @@ _REFUND_ID_PATTERNS = [
 ]
 
 
-def score(state: AgentState, expected: dict) -> float:  # noqa: ARG001
-    """Score hallucination check.
+def score(state, expected: dict) -> float:  # noqa: ARG001
+    """Score hallucination check. Accepts AgentState OR a dict.
 
     1.0 = no invented IDs in response; 0.0 = response contains unknown IDs.
     """
-    response_text = state.response_text or ""
+    response_text = _attr(state, "response_text") or ""
 
-    if not response_text.strip():
-        # Empty response — can't hallucinate, but might indicate another problem.
-        # Judge this as pass (another judge will catch empty responses).
-        logger.debug("hallucination_check: empty response_text → 1.0 (no hallucination possible)")
+    if not str(response_text).strip():
         result = 1.0
         _try_post_to_langfuse(state, result)
         return result
 
-    known_customer_id = state.customer.customer_id if state.customer else None
-    known_order_id = state.order.order_id if state.order else None
+    customer = _attr(state, "customer")
+    order = _attr(state, "order")
+    known_customer_id = _attr(customer, "customer_id") if customer else None
+    known_order_id = _attr(order, "order_id") if order else None
 
     # Check for invented customer IDs
     customer_ids_in_response = set(_CUSTOMER_ID_PATTERN.findall(response_text))
@@ -89,7 +93,7 @@ def score(state: AgentState, expected: dict) -> float:  # noqa: ARG001
     return result
 
 
-def _try_post_to_langfuse(state: AgentState, result: float) -> None:
+def _try_post_to_langfuse(state, result: float) -> None:
     try:
         from app.observability import get_langfuse_client
 
@@ -99,7 +103,7 @@ def _try_post_to_langfuse(state: AgentState, result: float) -> None:
         client.score(
             name=LANGFUSE_PROMPT_NAME,
             value=result,
-            trace_id=state.conversation_id,
+            trace_id=_attr(state, "conversation_id", "unknown"),
         )
     except Exception as exc:  # noqa: BLE001
         logger.debug("hallucination_check: langfuse post failed (non-fatal): %s", exc)

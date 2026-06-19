@@ -164,13 +164,20 @@ def _emit_loaded_event(name: str, version: str, source: str) -> None:
 # ---------------------------------------------------------------------------
 
 
-def load_system_prompt(version: str | None = None) -> str:
+def load_system_prompt(prompt_name: str = "system_refund_agent", version: str | None = None) -> str:
     """Return the resolved system prompt string.
 
-    Langfuse-first when configured; local prompts/system_refund_agent.md otherwise.
+    Args:
+        prompt_name: The prompt identifier in Langfuse / local prompts/<name>.md.
+                     Defaults to "system_refund_agent" (the main agent prompt) for
+                     backward compatibility. Sub-agents pass their own prompt name
+                     (e.g. "fraud_check_subagent") to load a different prompt.
+        version: Optional version string to pin Langfuse fetch. Defaults to latest.
+
+    Langfuse-first when configured; local prompts/<prompt_name>.md otherwise.
     Raises RuntimeError only if both Langfuse and local file are absent.
     """
-    content, _version, _source = _resolve_prompt("system_refund_agent", version)
+    content, _version, _source = _resolve_prompt(prompt_name, version)
     return content
 
 

@@ -16,6 +16,12 @@ import os
 
 from app.domain.models import AgentState
 
+# Runner serializes state to dict before passing to judges; helper unifies access.
+def _attr(state, name, default=None):
+    if isinstance(state, dict):
+        return state.get(name, default)
+    return getattr(state, name, default)
+
 logger = logging.getLogger(__name__)
 
 # Langfuse judge prompt name — registered once, stable across eval runs.
@@ -39,25 +45,23 @@ Does the agent's decision EXACTLY match the expected outcome (decision kind + al
 Reply ONLY with "1" for pass or "0" for fail."""
 
 
-def score(state: AgentState, expected: dict) -> float:
+def score(state, expected: dict) -> float:
     """Score policy correctness deterministically (no LLM needed for binary check).
 
-    Falls back to LLM scoring only when the expected_cited_clauses list is non-empty
-    AND the agent response text needs interpretation. For v0.1, the deterministic
-    path is sufficient and avoids flakiness.
+    Accepts AgentState OR a dict (the runner passes a serialized dict).
     """
     expected_kind = expected.get("expected_decision_kind", "")
     expected_clauses: list[str] = expected.get("expected_cited_clauses", [])
 
-    # Guard: no final decision produced
-    if state.final_decision is None:
+    final_decision = _attr(state, "final_decision")
+    if final_decision is None:
         logger.warning("policy_correctness: no final_decision in state — scoring 0.0")
         return 0.0
 
-    actual_kind = state.final_decision.kind
-    # Handle both enum and string values
-    actual_kind_str = actual_kind.value if hasattr(actual_kind, "value") else str(actual_kind)
-    actual_clauses = set(state.final_decision.cited_clause_ids)
+    actual_kind = _attr(final_decision, "kind") or (final_decision.get("kind") if isinstance(final_decision, dict) else None)
+    actual_kind_str = actual_kind.value if hasattr(actual_kind, "value") else str(actual_kind) if actual_kind else ""
+    raw_clauses = _attr(final_decision, "cited_clause_ids") or (final_decision.get("cited_clause_ids") if isinstance(final_decision, dict) else []) or []
+    actual_clauses = set(raw_clauses)
 
     kind_matches = actual_kind_str == expected_kind
     clauses_covered = all(c in actual_clauses for c in expected_clauses)
@@ -76,7 +80,7 @@ def score(state: AgentState, expected: dict) -> float:
     return result
 
 
-def _try_post_to_langfuse(state: AgentState, expected: dict, result: float) -> None:
+def _try_post_to_langfuse(state, expected: dict, result: float) -> None:
     """Post the judge score to Langfuse if the client is configured."""
     try:
         from app.observability import get_langfuse_client
@@ -87,7 +91,7 @@ def _try_post_to_langfuse(state: AgentState, expected: dict, result: float) -> N
         client.score(
             name=LANGFUSE_PROMPT_NAME,
             value=result,
-            trace_id=state.conversation_id,
+            trace_id=_attr(state, "conversation_id", "unknown"),
             comment=f"expected_kind={expected.get('expected_decision_kind')}",
         )
     except Exception as exc:  # noqa: BLE001

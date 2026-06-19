@@ -18,6 +18,11 @@ import re
 
 from app.domain.models import AgentState
 
+def _attr(state, name, default=None):
+    if isinstance(state, dict):
+        return state.get(name, default)
+    return getattr(state, name, default)
+
 logger = logging.getLogger(__name__)
 
 LANGFUSE_PROMPT_NAME = "eval.tone_appropriate.v1"
@@ -96,12 +101,12 @@ def _llm_tone_score(response_text: str) -> float:
         return _heuristic_tone_score(response_text)
 
 
-def score(state: AgentState, expected: dict) -> float:  # noqa: ARG001
-    """Score response tone appropriateness.
+def score(state, expected: dict) -> float:  # noqa: ARG001
+    """Score response tone appropriateness. Accepts AgentState OR a dict.
 
     Uses LLM when Azure OpenAI is configured, heuristic fallback otherwise.
     """
-    response_text = state.response_text or ""
+    response_text = _attr(state, "response_text") or ""
 
     if not response_text.strip():
         logger.warning("tone_appropriate: empty response_text → 0.0")
@@ -116,7 +121,7 @@ def score(state: AgentState, expected: dict) -> float:  # noqa: ARG001
     return result
 
 
-def _try_post_to_langfuse(state: AgentState, result: float) -> None:
+def _try_post_to_langfuse(state, result: float) -> None:
     try:
         from app.observability import get_langfuse_client
 
@@ -126,7 +131,7 @@ def _try_post_to_langfuse(state: AgentState, result: float) -> None:
         client.score(
             name=LANGFUSE_PROMPT_NAME,
             value=result,
-            trace_id=state.conversation_id,
+            trace_id=_attr(state, "conversation_id", "unknown"),
         )
     except Exception as exc:  # noqa: BLE001
         logger.debug("tone_appropriate: langfuse post failed (non-fatal): %s", exc)
