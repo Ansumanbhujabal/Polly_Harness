@@ -36,9 +36,12 @@ Verdict thresholds from `eval/thresholds.yaml`. A run that hits all of these is 
 | Run | Date (UTC) | Hypothesis tested | Verdict | Pass rate | Findings doc |
 |---|---|---|---|---|---|
 | **v1** | 2026-06-19 04:40 | baseline — measure where the system actually is | FAIL | 28.3% | [v1_findings.md](runs/v1_findings.md) |
-| v2 | _pending_ | _to be set after v1 review_ | — | — | — |
-| v3 | _pending_ | — | — | — | — |
-| v4 | _pending_ | — | — | — | — |
+| **v2** | 2026-06-19 05:19 | intent classifier fix (LogRecord collision + return/complaint mapping + escalate edge) | FAIL (NEUTRAL Δ) | 28.3% | [v2_findings.md](runs/v2_findings.md) |
+| v3 | _pending_ | infrastructure cleanup — judge interface unification + load_system_prompt API + per-case JSON detail | — | — | — |
+| v4 | _pending_ | L9 paraphrased-injection LLM-judge (real product safety fix) | — | — | — |
+| v5 | _pending_ | C3 LLM poisoning fix — previous-turn-grounding check + policy_grounding tightening | — | — | — |
+| v6 | _pending_ | C6 tone — escalation node empathy preamble | — | — | — |
+| v7 | _pending_ | latency — parallelize independent nodes + enable semantic cache | — | — | — |
 
 ## How to read the deltas
 
