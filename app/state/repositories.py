@@ -274,6 +274,35 @@ class Repository:
             self._conn.commit()
         self._emit_write("processed_incidents", incident_id)
 
+    def list_incidents(self, limit: int = 20) -> list[IncidentRecord]:
+        """Return the *limit* most-recent incidents ordered by created_at DESC."""
+        with self._lock:
+            cursor = self._conn.execute(
+                "SELECT incident_id, conversation_id, triggered_by, layer, "
+                "summary, detail, proposed_remediation, created_at "
+                "FROM incidents "
+                "ORDER BY created_at DESC "
+                "LIMIT ?",
+                (limit,),
+            )
+            rows = cursor.fetchall()
+
+        result: list[IncidentRecord] = []
+        for row in rows:
+            result.append(
+                IncidentRecord(
+                    incident_id=row[0],
+                    conversation_id=row[1],
+                    triggered_by=row[2],  # type: ignore[arg-type]
+                    layer=LayerName(row[3]),
+                    summary=row[4],
+                    detail=json.loads(row[5]) if row[5] else {},
+                    proposed_remediation=row[6],
+                    created_at=datetime.fromisoformat(row[7]),
+                )
+            )
+        return result
+
     def list_unprocessed_incidents(self, min_age_minutes: int = 60) -> list[IncidentRecord]:
         """Return incidents older than min_age_minutes that have not been processed.
 
