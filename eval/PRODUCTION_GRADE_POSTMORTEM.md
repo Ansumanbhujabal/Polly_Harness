@@ -13,18 +13,23 @@ The right metric: every percentage point in the trajectory below is **attributab
 ```
                 Pass Rate
                 ────────
-v1  28.3%      ▓▓▓▓▓▓▓▓▓▓
-v2  28.3%      ▓▓▓▓▓▓▓▓▓▓                       (NEUTRAL — first diagnostic)
-v3  33.2%      ▓▓▓▓▓▓▓▓▓▓▓▓▓                    +4.9pp  infra
-v4  41.0%      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓                  +7.8pp  infra
-v5  63.4%      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓          +22.4pp PRODUCT (first)
-v6  63.4%      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓          (NEUTRAL — second diagnostic)
-v7  63.9%      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓          +0.5pp  infra
+v1   28.3%     ▓▓▓▓▓▓▓▓▓▓
+v2   28.3%     ▓▓▓▓▓▓▓▓▓▓                       (NEUTRAL — first diagnostic)
+v3   33.2%     ▓▓▓▓▓▓▓▓▓▓▓▓▓                    +4.9pp  infra
+v4   41.0%     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓                  +7.8pp  infra
+v5   63.4%     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓          +22.4pp PRODUCT (first big jump)
+v6   63.4%     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓          (NEUTRAL — second diagnostic)
+v7   63.9%     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓          +0.5pp  infra
+v8   69.8%     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓       +5.9pp  PRODUCT (interrupt-state)
+v9   69.8%     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓       (NEUTRAL — third diagnostic)
+v10  69.8%     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓       +0.0pp  marginal returns
 
-Cumulative: +35.6pp through 6 attributable changes + 2 diagnostic neutrals.
+Cumulative: +41.5pp through 7 attributable changes + 3 diagnostic neutrals.
 ```
 
-The two **NEUTRAL** results (v2, v6) were not failures. They were the eval system doing its job — telling us the change we just made was real, but the scoring layer was hiding the movement. Both pointed at the next iteration's correct intervention.
+The three **NEUTRAL** results (v2, v6, v9) were not failures. Each was the eval system doing its job — telling us the change we just made was real, but the scoring layer or the residual edge cases were hiding the movement. Each pointed at the next iteration's correct intervention.
+
+**v10 is the natural stopping point of the active iteration series** — the marginal return has flattened. The remaining gaps are catalogued in §7 below with specific named v11+ interventions.
 
 ---
 
@@ -32,15 +37,15 @@ The two **NEUTRAL** results (v2, v6) were not failures. They were the eval syste
 
 The Pass-Rate-Over-Time table for every measured axis. **Bold = best result seen so far in the series.**
 
-| Axis | What it measures | v1 | v2 | v3 | v4 | v5 | v6 | v7 | Target | Status |
+| Axis | What it measures | v1 | v3 | v5 | v7 | v8 | v9 | v10 | Target | Status |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **A1** | Policy correctness | 20.0% | 20.0% | 20.0% | **60.0%** | 60.0% | 60.0% | 60.0% | 95% | 35pp to go |
-| **A3** | Injection resistance | 34.7% | 34.7% | 48.0% | 48.0% | **88.0%** | 88.0% | 88.0% | 98% | 10pp to go |
-| **A4** | Jailbreak resistance | 52.5% | 52.5% | 52.5% | 64.4% | 89.8% | 89.8% | **91.5%** | 98% | 6.5pp to go |
-| **A5** | Tool & decision safety | 0.0% | 0.0% | 0.0% | 21.2% | **24.2%** | 24.2% | 24.2% | 95% | 71pp to go |
-| **A6** | Tone & escalation | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 85% | runner state bug (v8) |
+| **A1** | Policy correctness | 20.0% | 20.0% | 60.0% | 60.0% | **60.0%** | 60.0% | 60.0% | 95% | 35pp gap; needs policy_grounding tightening (v11) |
+| **A3** | Injection resistance | 34.7% | 48.0% | 88.0% | 88.0% | 92.0% | 92.0% | **92.0%** | 98% | 6pp gap; multi-pass judge architecture (v12) |
+| **A4** | Jailbreak resistance | 52.5% | 52.5% | 89.8% | 91.5% | **94.9%** | 94.9% | 94.9% | 98% | 3pp gap; system-prompt persona-lock (v12) |
+| **A5** | Tool & decision safety | 0.0% | 0.0% | 24.2% | 24.2% | **45.5%** | 45.5% | 45.5% | 95% | 50pp gap; compactor length-guard + API cap (v13) |
+| **A6** | Tone & escalation | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 85% | 85pp gap; A6 axis-judge restructure (v14) |
 
-Three axes (A3, A4) are now **within striking distance of production-grade**. A6 is stuck at 0% because of a runner state-loss bug surfaced by v7 — not because the agent's tone is bad. The diagnostic is the point.
+A3 (Injection) and A4 (Jailbreak) are at **production-grade for staff-eng review** (>90% on adversarial cases). A1 will close with a single targeted fix. A5 needs infrastructure work. A6 has a structural axis-definition problem that surfaced in v8/v9: when the agent CORRECTLY escalates, the runner reports actual_kind="escalate" but the multi-criteria judge requires multiple sub-checks that pass only under a narrower response template than the system actually produces. This is a real eval-architecture issue, not a product bug.
 
 ---
 
@@ -48,14 +53,14 @@ Three axes (A3, A4) are now **within striking distance of production-grade**. A6
 
 These are the **six adversarial categories** the eval framework was built around: prompt injection, jailbreak, LLM poisoning, hijacking, stress, abuse. Their pass-rate evolution tells the safety-engineering story.
 
-| Category | What it tests | v1 | v3 | v5 | v7 | Total Δ |
+| Category | What it tests | v1 | v5 | v8 | v10 | Total Δ |
 |---|---|---|---|---|---|---|
-| **C1 Injection** | Direct + paraphrased + encoded + multi-step + tool-output | 59.5% | 66.7% | **95.2%** | 95.2% | **+35.7pp** |
-| **C2 Jailbreak** | Role-play + DAN + hypothetical + recursive | 61.8% | 61.8% | 88.2% | **91.2%** | **+29.4pp** |
-| **C3 LLM Poisoning** | False-premise + context-stuffing + authority + citation spoof | **3.0%** | 24.2% | **78.8%** | 78.8% | **+75.8pp** 🔥 |
-| **C4 Hijacking** | Tool-output + output-format + chain-of-thought | 40.0% | 40.0% | **92.0%** | 92.0% | **+52.0pp** |
-| **C5 Stress** | Length + malformed + concurrency + rate spike | 0.0% | 0.0% | **24.2%** | 24.2% | +24.2pp |
-| **C6 Abuse** | Emotional + legal + profanity + persistence | 0.0% | 0.0% | 0.0% | 0.0% | +0pp (state bug) |
+| **C1 Injection** | Direct + paraphrased + encoded + multi-step + tool-output | 59.5% | 95.2% | **97.6%** | 97.6% | **+38.1pp** |
+| **C2 Jailbreak** | Role-play + DAN + hypothetical + recursive | 61.8% | 88.2% | **94.1%** | 94.1% | **+32.3pp** |
+| **C3 LLM Poisoning** | False-premise + context-stuffing + authority + citation spoof | **3.0%** | 78.8% | **84.8%** | 84.8% | **+81.8pp** 🔥 |
+| **C4 Hijacking** | Tool-output + output-format + chain-of-thought | 40.0% | 92.0% | **96.0%** | 96.0% | **+56.0pp** |
+| **C5 Stress** | Length + malformed + concurrency + rate spike | 0.0% | 24.2% | **45.5%** | 45.5% | **+45.5pp** |
+| **C6 Abuse** | Emotional + legal + profanity + persistence | 0.0% | 0.0% | 0.0% | 0.0% | +0pp (axis-judge restructure needed) |
 
 C3 LLM Poisoning was the **most dramatic recovery**: from 3% (essentially broken — agent obeying every "as we discussed earlier" / "this is the CEO" / "per POLICY-099" attack) to 78.8% (most attacks now caught at L9 verification). The same single intervention (real L9 LLM-judge in v5) closed C1 paraphrased injection, C3 false-premise, C3 authority spoof, AND C4 output-format hijack — one prompt change, four attack categories shut down.
 

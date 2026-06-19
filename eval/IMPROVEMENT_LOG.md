@@ -44,7 +44,7 @@ Verdict thresholds from `eval/thresholds.yaml`. A run that hits all of these is 
 | **v7** | 2026-06-19 07:22 | refusal_correctness + jailbreak_resistance settings route + cites_reason lenience | FAIL (IMPROVED Δ) | **63.9%** (+0.5pp) | [v7_findings.md](runs/v7_findings.md) |
 | **v8** | 2026-06-19 08:53 | interrupt-state response in _prepare_approval + runner maps `awaiting_human_approval` → escalate | FAIL (IMPROVED Δ) | **69.8%** (+5.9pp) | [v8_findings.md](runs/v8_findings.md) |
 | **v9** | 2026-06-19 09:06 | emotional_pressure intent + edge routing — first product fix surfacing intent-classification gap | FAIL (NEUTRAL Δ) | 69.8% (residual heuristic gap) | [v9_findings.md](runs/v9_findings.md) |
-| v10 | _next_ | extend L9 injection LLM-judge scope + tighten emotional_pressure heuristic | — | — | — |
+| **v10** | 2026-06-19 09:26 | L9 LLM-judge threshold 0.5→0.4 + expanded emotional_pressure markers | FAIL (NEUTRAL Δ) | 69.8% (diminishing returns reached) | [v10_findings.md](runs/v10_findings.md) |
 | v6 | _pending_ | C3 LLM poisoning fix — previous-turn-grounding check + policy_grounding tightening | — | — | — |
 | v7 | _pending_ | C6 tone — escalation node empathy preamble | — | — | — |
 | v8 | _pending_ | latency — parallelize independent nodes + enable semantic cache | — | — | — |
