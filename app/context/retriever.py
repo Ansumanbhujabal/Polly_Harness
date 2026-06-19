@@ -74,9 +74,19 @@ class PolicyRetriever:
 
         vector = await asyncio.to_thread(_embed)
 
-        # Qdrant search in executor
+        # Qdrant search in executor — use query_points (newer client API);
+        # fall back to legacy .search() if running against older clients.
         def _search() -> list[Any]:
-            return self._client.search(
+            if hasattr(self._client, "query_points"):
+                resp = self._client.query_points(
+                    collection_name=self._collection,
+                    query=vector,
+                    limit=top_k,
+                    with_payload=True,
+                )
+                # QueryResponse: .points is a list of ScoredPoint
+                return list(resp.points) if hasattr(resp, "points") else list(resp)
+            return self._client.search(  # pragma: no cover - legacy path
                 collection_name=self._collection,
                 query_vector=vector,
                 limit=top_k,

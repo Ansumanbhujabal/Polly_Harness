@@ -115,6 +115,9 @@ def test_retriever_returns_top_k_clauses_with_ids(mocker):
     mock_client_cls.return_value = mock_client
     mock_client.get_collection.return_value = MagicMock()  # collection exists
     mock_client.search.return_value = fake_results
+    mock_query_resp = MagicMock()
+    mock_query_resp.points = fake_results
+    mock_client.query_points.return_value = mock_query_resp
 
     mock_embed_cls = mocker.patch("app.context.retriever.TextEmbedding")
     mock_embed = MagicMock()
@@ -152,6 +155,9 @@ def test_retriever_emits_event_on_success(mocker):
     mock_client_cls.return_value = mock_client
     mock_client.get_collection.return_value = MagicMock()
     mock_client.search.return_value = fake_results
+    mock_query_resp = MagicMock()
+    mock_query_resp.points = fake_results
+    mock_client.query_points.return_value = mock_query_resp
 
     mock_embed_cls = mocker.patch("app.context.retriever.TextEmbedding")
     mock_embed = MagicMock()
