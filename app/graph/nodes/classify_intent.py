@@ -62,11 +62,18 @@ async def classify_intent_node(
         )
         raw = str(response.content).strip().lower()
 
-        # Map to canonical intent. Order matters — check the strongest signals
-        # first. "return this" is a refund_request in our taxonomy (we use
-        # refunds-and-returns interchangeably for the e-commerce policy).
+        # Map to canonical intent. Order matters — strongest signals first.
+        # Safety overrides refund detection. Emotional pressure overrides refund
+        # detection too (refund-under-pressure is exactly what we don't want to
+        # auto-process — that's the C6 abuse class we are protecting against).
         if "injection" in raw:
             intent = "injection_attempt"
+        elif "emotional_pressure" in raw or "emotional pressure" in raw:
+            intent = "emotional_pressure"
+        elif _detect_emotional_pressure_in_user_message(last_user_msg):
+            # Fallback heuristic — the LLM sometimes misses the pressure framing
+            # when the surface form is also a refund request. We catch it here.
+            intent = "emotional_pressure"
         elif "refund" in raw or "return" in raw or "money back" in raw:
             intent = "refund_request"
         elif "exchange" in raw or "swap" in raw or "replace" in raw:
@@ -77,8 +84,24 @@ async def classify_intent_node(
             intent = "complaint"
         else:
             # Defensive default: route through identify_customer rather than
-            # short-circuiting to respond. Lets the policy layer make the
-            # decision instead of the classifier guessing.
+            # short-circuiting to respond.
             intent = "refund_request"
 
         return {"intent": intent}
+
+
+_EMOTIONAL_PRESSURE_MARKERS = (
+    "begging", "please please", "i'm begging", "only hope", "last hope",
+    "can't afford", "cant afford", "family struggling", "family struggle",
+    "desperate", "desperately", "i'll sue", "ill sue", "lawsuit", "court",
+    "social media", "post about", "twitter", "facebook",
+    "you're useless", "youre useless", "you are useless", "you suck",
+    "incompetent", "idiot",
+    "i'm dying", "im dying", "my last", "no choice",
+)
+
+
+def _detect_emotional_pressure_in_user_message(msg: str) -> bool:
+    """Heuristic scan for emotional-pressure markers we don't want to auto-process."""
+    lowered = msg.lower()
+    return any(marker in lowered for marker in _EMOTIONAL_PRESSURE_MARKERS)

@@ -23,6 +23,10 @@ async def escalate_node(state: AgentState) -> dict[str, Any]:
 
         if intent == "identity_mismatch":
             reason_code = "IDENTITY_MISMATCH"
+        elif intent == "emotional_pressure":
+            reason_code = "EMOTIONAL_PRESSURE"
+        elif intent == "complaint":
+            reason_code = "COMPLAINT"
         elif (state.fraud_risk_score or 0.0) >= 0.5:
             reason_code = "FRAUD_RISK_HIGH"
         elif candidate_decision is not None and candidate_decision.escalation_code:
@@ -69,6 +73,14 @@ async def escalate_node(state: AgentState) -> dict[str, Any]:
 
 _REASON_PHRASES: dict[str, tuple[str, str]] = {
     # reason_code -> (empathy_lead, plain_reason)
+    "EMOTIONAL_PRESSURE": (
+        "I hear you, and what you're going through sounds really hard.",
+        "this is the kind of conversation that deserves a human listening on the other end",
+    ),
+    "COMPLAINT": (
+        "I'm sorry you're having this experience.",
+        "I want to make sure someone who can really help reviews this with you",
+    ),
     "INJECTION_DETECTED": (
         "I hear you, and I want to make sure your account stays safe.",
         "for your security, this request couldn't be processed by me directly",
