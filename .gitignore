@@ -58,3 +58,5 @@ node_modules/
 
 # Private build artifacts (kept in ~/.claude/projects/...)
 docs/superpowers/
+
+.claude/
