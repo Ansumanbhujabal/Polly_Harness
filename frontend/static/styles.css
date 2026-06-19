@@ -1,0 +1,114 @@
+/*
+ * Refund Agent — frontend styles
+ * Layer chip colors + pulse animation for the active Mermaid node.
+ */
+
+/* -------------------------------------------------------------------------
+ * CSS custom properties
+ * ---------------------------------------------------------------------- */
+
+:root {
+  --accent: #4f46e5;  /* indigo — pulse glow color */
+
+  /* Layer chip palette — one color per LayerName */
+  --chip-l1: #6366f1;   /* L1_INSTRUCTIONS  — indigo */
+  --chip-l2: #0ea5e9;   /* L2_CONTEXT       — sky */
+  --chip-l3: #10b981;   /* L3_TOOLS         — emerald */
+  --chip-l4: #f59e0b;   /* L4_EXECUTION     — amber */
+  --chip-l5: #8b5cf6;   /* L5_STATE         — violet */
+  --chip-l6: #ef4444;   /* L6_ORCHESTRATION — red */
+  --chip-l7: #f97316;   /* L7_SUBAGENTS     — orange */
+  --chip-l8: #14b8a6;   /* L8_SKILLS        — teal */
+  --chip-l9: #ec4899;   /* L9_VERIFICATION  — pink */
+  --chip-incident: #64748b;  /* INCIDENT_LOOP   — slate */
+  --chip-cache:    #a3a3a3;  /* CACHE           — neutral */
+}
+
+/* -------------------------------------------------------------------------
+ * Layer event chips — used in the Live Trace tab
+ * ---------------------------------------------------------------------- */
+
+.layer-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.layer-chip.layer-l1_instructions  { background-color: var(--chip-l1); }
+.layer-chip.layer-l2_context        { background-color: var(--chip-l2); }
+.layer-chip.layer-l3_tools          { background-color: var(--chip-l3); }
+.layer-chip.layer-l4_execution      { background-color: var(--chip-l4); color: #1a1a1a; }
+.layer-chip.layer-l5_state          { background-color: var(--chip-l5); }
+.layer-chip.layer-l6_orchestration  { background-color: var(--chip-l6); }
+.layer-chip.layer-l7_subagents      { background-color: var(--chip-l7); color: #1a1a1a; }
+.layer-chip.layer-l8_skills         { background-color: var(--chip-l8); }
+.layer-chip.layer-l9_verification   { background-color: var(--chip-l9); }
+.layer-chip.layer-incident_loop     { background-color: var(--chip-incident); }
+.layer-chip.layer-cache             { background-color: var(--chip-cache); color: #1a1a1a; }
+
+/* -------------------------------------------------------------------------
+ * Mermaid node pulse — toggled by sse_listener.js adding class `active-layer`
+ * ---------------------------------------------------------------------- */
+
+@keyframes pulse {
+  0%,
+  100% {
+    filter: none;
+  }
+  50% {
+    filter: drop-shadow(0 0 8px var(--accent));
+  }
+}
+
+.active-layer {
+  animation: pulse 1.2s ease-in-out 3; /* 3 cycles then stop */
+}
+
+/* -------------------------------------------------------------------------
+ * Approval banner
+ * ---------------------------------------------------------------------- */
+
+.approval-banner-visible {
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #92400e;
+  margin-bottom: 12px;
+}
+
+/* -------------------------------------------------------------------------
+ * Misc layout helpers
+ * ---------------------------------------------------------------------- */
+
+#trace-container {
+  max-height: 520px;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+.trace-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.trace-timestamp {
+  color: #9ca3af;
+  white-space: nowrap;
+  font-size: 0.72rem;
+}
+
+.trace-event-type {
+  font-weight: 500;
+  flex: 1;
+}

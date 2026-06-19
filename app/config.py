@@ -57,6 +57,7 @@ class Settings(BaseSettings):
     GRADIO_SERVER_NAME: str = "0.0.0.0"
     GRADIO_SERVER_PORT: int = 7860
     CORS_ALLOWED_ORIGINS: list[str] = Field(default=["http://localhost:7860"])
+    DEMO_MODE: bool = False
 
     # Paths (computed)
     POLICY_DOC_PATH: Path = Field(default=REPO_ROOT / "data" / "policy" / "refund_policy_v1.md")
