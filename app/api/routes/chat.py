@@ -95,11 +95,24 @@ async def chat(request: ChatRequest) -> Any:
                 if r["ok"] and r["output"] and r["output"].get("order"):
                     prefilled_order = r["output"]["order"]
 
+        # Each new turn starts with stale per-turn fields cleared. LangGraph's
+        # SqliteSaver merges incoming state with the previous checkpoint, so if
+        # we don't explicitly null `intent`, `response_text`, `final_decision`,
+        # and `candidate_decision`, the new turn would inherit (and short-circuit
+        # on) the previous turn's classification and reply. customer + order
+        # are passed through because they're the persistent CRM context.
         initial_state = AgentState(
             conversation_id=conversation_id,
             messages=[{"role": "user", "content": request.message}],
             customer=prefilled_customer,
             order=prefilled_order,
+            intent=None,
+            response_text=None,
+            final_decision=None,
+            candidate_decision=None,
+            tool_invocations=[],
+            fraud_risk_score=None,
+            awaiting_human_approval=False,
         )
         config: dict[str, Any] = {
             "configurable": {"thread_id": conversation_id},

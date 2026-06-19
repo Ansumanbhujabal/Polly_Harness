@@ -125,7 +125,10 @@ async def respond_node(
     cid: str = state.conversation_id or "unknown"
 
     async with async_node_scope("respond", cid):
-        # If response_text already set (e.g. by escalate_node), keep it
+        # response_text may be pre-composed THIS TURN by an upstream node
+        # (escalate, _prepare_approval). Keep it. The chat API entrypoint
+        # is responsible for clearing stale response_text from previous turns
+        # before re-invoking, so a non-empty value here is from this turn.
         if state.response_text:
             return {}
 

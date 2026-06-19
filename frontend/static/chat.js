@@ -40,7 +40,7 @@
   let conversationId = null;
   let activeCustomer = null;
   let activeOrder = null;
-  let lastAwaitingApproval = false; // when true, next free-form turn resets conversation
+  let lastTurnCompleted = false; // true after a turn ends with a final decision
   let inFlight = false;
 
   // --- helpers ---
@@ -205,11 +205,14 @@
     if (!message || inFlight) return;
     const isScenarioClick = !!(opts && opts.fromScenario);
 
-    // If last reply was an interrupt-state escalation, and this is a free-form
-    // follow-up, treat it as a brand-new conversation.
-    if (!isScenarioClick && lastAwaitingApproval) {
+    // After ANY completed turn (deny / approve / escalate, with or without
+    // awaiting_human_approval), the next free-form message is a NEW question
+    // — start a fresh thread. Otherwise LangGraph's checkpointer carries
+    // forward the previous turn's classification and final_decision, and
+    // the agent echoes the same canned reply.
+    if (!isScenarioClick && lastTurnCompleted) {
       conversationId = null;
-      lastAwaitingApproval = false;
+      lastTurnCompleted = false;
       updateConvIdDisplay();
     }
 
@@ -244,9 +247,11 @@
         const data = await resp.json();
         conversationId = data.conversation_id || conversationId;
         const summary = data.final_state_summary || {};
-        lastAwaitingApproval = !!summary.awaiting_human_approval;
+        // A "completed" turn = anything that produced a final_decision or set
+        // awaiting_human_approval. The next free-form message gets a new thread.
+        lastTurnCompleted = !!(summary.final_decision || summary.awaiting_human_approval);
         const replyText = summary.response_text || "(no response)";
-        appendBot(replyText, summary.final_decision, lastAwaitingApproval);
+        appendBot(replyText, summary.final_decision, !!summary.awaiting_human_approval);
         updateConvIdDisplay();
       }
     } catch (err) {
@@ -276,7 +281,7 @@
 
     // Fresh conversation for the new scenario
     conversationId = null;
-    lastAwaitingApproval = false;
+    lastTurnCompleted = false;
 
     // Highlight active chip
     scenariosEl
@@ -317,7 +322,7 @@
   if (resetBtn) {
     resetBtn.addEventListener("click", function () {
       conversationId = null;
-      lastAwaitingApproval = false;
+      lastTurnCompleted = false;
       updateConvIdDisplay();
       // Clear the visible conversation but keep the active scenario context
       while (messagesEl.firstChild) messagesEl.removeChild(messagesEl.firstChild);
