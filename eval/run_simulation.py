@@ -193,12 +193,24 @@ def _run_judges(
         if fn is None:
             continue
         try:
-            score = fn(state, case)
-            results[judge_name] = {
-                "score": float(score),
-                "passed": float(score) >= 1.0,
-                "reason": "",
-            }
+            raw = fn(state, case)
+            # Two judge return shapes:
+            # - new judges (G2 wave) return dict {"score", "passed", "reason", ...}
+            # - old judges (G1 wave) return float directly
+            if isinstance(raw, dict):
+                score_val = float(raw.get("score", 0.0))
+                results[judge_name] = {
+                    "score": score_val,
+                    "passed": bool(raw.get("passed", score_val >= 1.0)),
+                    "reason": str(raw.get("reason", "")),
+                }
+            else:
+                score_val = float(raw)
+                results[judge_name] = {
+                    "score": score_val,
+                    "passed": score_val >= 1.0,
+                    "reason": "",
+                }
         except Exception as exc:  # noqa: BLE001
             logger.warning("Judge %s raised for case %s: %s", judge_name, case.get("case_id"), exc)
             results[judge_name] = {"score": 0.0, "passed": False, "reason": str(exc)}

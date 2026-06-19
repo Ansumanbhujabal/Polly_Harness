@@ -37,11 +37,12 @@ Verdict thresholds from `eval/thresholds.yaml`. A run that hits all of these is 
 |---|---|---|---|---|---|
 | **v1** | 2026-06-19 04:40 | baseline — measure where the system actually is | FAIL | 28.3% | [v1_findings.md](runs/v1_findings.md) |
 | **v2** | 2026-06-19 05:19 | intent classifier fix (LogRecord collision + return/complaint mapping + escalate edge) | FAIL (NEUTRAL Δ) | 28.3% | [v2_findings.md](runs/v2_findings.md) |
-| v3 | _pending_ | infrastructure cleanup — judge interface unification + load_system_prompt API + per-case JSON detail | — | — | — |
-| v4 | _pending_ | L9 paraphrased-injection LLM-judge (real product safety fix) | — | — | — |
-| v5 | _pending_ | C3 LLM poisoning fix — previous-turn-grounding check + policy_grounding tightening | — | — | — |
-| v6 | _pending_ | C6 tone — escalation node empathy preamble | — | — | — |
-| v7 | _pending_ | latency — parallelize independent nodes + enable semantic cache | — | — | — |
+| **v3** | 2026-06-19 05:32 | judge interface unification (dict\|AgentState) + load_system_prompt(prompt_name) API | FAIL (IMPROVED Δ) | **33.2%** (+4.9pp) | [v3_findings.md](runs/v3_findings.md) |
+| v4 | _running_ | runner dict-return handler (unblocks A4/C2 jailbreak_resistance scoring) | — | — | — |
+| v5 | _pending_ | L9 paraphrased-injection LLM-judge (real product safety fix) + tone judge settings-route | — | — | — |
+| v6 | _pending_ | C3 LLM poisoning fix — previous-turn-grounding check + policy_grounding tightening | — | — | — |
+| v7 | _pending_ | C6 tone — escalation node empathy preamble | — | — | — |
+| v8 | _pending_ | latency — parallelize independent nodes + enable semantic cache | — | — | — |
 
 ## How to read the deltas
 
