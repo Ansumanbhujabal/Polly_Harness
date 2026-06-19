@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Harness-engineered AI customer support agent for e-commerce refund processing"
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [{ name = "Ansuman SS Bhujabala", email = "dev@anyfeast.com" }]
+authors = [{ name = "Ansuman SS Bhujabala" }]
 license = { text = "MIT" }
 
 dependencies = [
