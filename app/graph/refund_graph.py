@@ -78,9 +78,22 @@ def _prepare_approval_node(state: AgentState) -> dict[str, Any]:
 
     This node runs immediately before await_human_approval_node so that
     the checkpointed state reflects the awaiting flag even when ainvoke()
-    returns early due to interrupt().
+    returns early due to interrupt(). Also populates response_text with an
+    empathetic interim acknowledgement so the customer-facing output isn't
+    empty when the graph pauses.
     """
-    return {"awaiting_human_approval": True}
+    candidate = state.candidate_decision
+    amount = candidate.amount_usd if candidate else 0.0
+    response = (
+        "I want to make sure this gets the careful look it deserves. "
+        f"Your refund request for ${amount:.2f} is above the amount I can approve directly, "
+        "so I'm routing it to a senior agent for review. "
+        "They'll follow up within 1 business day — if it's urgent, you can reply here and we'll prioritise it."
+    )
+    return {
+        "awaiting_human_approval": True,
+        "response_text": response,
+    }
 
 
 def _build_llm() -> BaseLanguageModel:

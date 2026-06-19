@@ -273,6 +273,18 @@ async def _drive_case(
                 graph.ainvoke(initial_state, config),
                 timeout=timeout_s,
             )
+            # Diagnostic: log full final state for empty-response cases
+            if final_state is not None:
+                rt = _get(final_state, "response_text")
+                if not rt:
+                    fd = _get(final_state, "final_decision")
+                    cd = _get(final_state, "candidate_decision")
+                    awaiting = _get(final_state, "awaiting_human_approval")
+                    intent = _get(final_state, "intent")
+                    logger.warning(
+                        "Case %s EMPTY_RESPONSE_DIAGNOSTIC: intent=%s awaiting=%s final_decision=%s candidate=%s",
+                        case_id, intent, awaiting, fd, cd,
+                    )
         except asyncio.TimeoutError:
             error = f"TimeoutError: case timed out after {timeout_s}s"
             logger.warning("Case %s timed out", case_id)
@@ -306,6 +318,13 @@ async def _drive_case(
             awaiting_approval = bool(_get(final_state, "awaiting_human_approval"))
             response_text = _get(final_state, "response_text")
             tool_invs = _tool_invocations(final_state)
+            # When the graph paused at an interrupt (above-cap approval needed),
+            # treat as "escalate" for case-passed matching — the agent IS escalating
+            # to a human, the final_decision just hasn't materialized yet because
+            # we haven't resumed. This matches the expected behaviour the ground
+            # truth records as "escalate".
+            if actual_kind is None and awaiting_approval:
+                actual_kind = "escalate"
         else:
             actual_kind = None
             actual_clauses = []
