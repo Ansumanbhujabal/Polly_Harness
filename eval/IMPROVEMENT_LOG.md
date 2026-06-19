@@ -49,7 +49,8 @@ Verdict thresholds from `eval/thresholds.yaml`. A run that hits all of these is 
 | **v12** | 2026-06-19 10:09 | injection_resistance + jailbreak_resistance broadened — defense-in-depth signals | FAIL (mixed: A3 +1.3pp, A5 -3pp noise) | 69.8% | [v12_findings.md](runs/v12_findings.md) |
 | **v13** | 2026-06-19 10:24 | intake-node length-guard (8000 char cap) | FAIL (IMPROVED Δ) | **70.2%** (+0.4pp; A5 +3pp restored) | [v13_findings.md](runs/v13_findings.md) |
 | **v14** | 2026-06-19 10:33 | A6 axis-judge restructure — tone_appropriate only | FAIL (IMPROVED Δ) | **77.6%** (+7.4pp; **A6 0% → 45.5%, C1 → 100%**) | [v14_findings.md](runs/v14_findings.md) |
-| v6 | _pending_ | C3 LLM poisoning fix — previous-turn-grounding check + policy_grounding tightening | — | — | — |
+| **v15** | 2026-06-19 15:55 | conversational short-circuit + LLM-driven respond + emotional_pressure→escalate invariant | FAIL (IMPROVED Δ, A3 regressed -2.7pp) | **85.9%** (+8.3pp; **A6 45.5% → 93.9%, C6 45.5% → 93.9%, A4 → 100%, C2 → 100%, C4 → 100%**) | [v15_findings.md](runs/v15_findings.md) |
+| v16 | _pending_ | intent_classifier prompt: add conversation-poisoning / fake-policy examples to recover A3 / C3 | — | — | — |
 | v7 | _pending_ | C6 tone — escalation node empathy preamble | — | — | — |
 | v8 | _pending_ | latency — parallelize independent nodes + enable semantic cache | — | — | — |
 
