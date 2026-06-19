@@ -77,24 +77,28 @@ def _heuristic_tone_score(response_text: str) -> float:
 
 
 def _llm_tone_score(response_text: str) -> float:
-    """Use Azure OpenAI to score tone (requires env vars)."""
+    """Use Azure OpenAI to score tone via app.config.settings."""
     try:
+        from app.config import settings
         from langchain_openai import AzureChatOpenAI
 
+        if not settings.azure_configured:
+            return _heuristic_tone_score(response_text)
+
         llm = AzureChatOpenAI(
-            azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
-            api_key=os.environ["AZURE_OPENAI_API_KEY"],
-            azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4o"),
-            api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-08-01-preview"),
+            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+            api_key=settings.AZURE_OPENAI_API_KEY,
+            azure_deployment=settings.AZURE_OPENAI_DEPLOYMENT_CHAT,
+            api_version=settings.AZURE_OPENAI_API_VERSION,
             temperature=0,
             max_tokens=5,
         )
-        prompt = _USER_TEMPLATE.format(response_text=response_text)
+        prompt = _USER_TEMPLATE.format(response_text=response_text[:2000])
         response = llm.invoke([
             {"role": "system", "content": _SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ])
-        raw = response.content.strip()
+        raw = str(response.content).strip()
         return 1.0 if raw.startswith("1") else 0.0
     except Exception as exc:  # noqa: BLE001
         logger.debug("tone_appropriate: LLM call failed, using heuristic: %s", exc)
@@ -108,13 +112,12 @@ def score(state, expected: dict) -> float:  # noqa: ARG001
     """
     response_text = _attr(state, "response_text") or ""
 
-    if not response_text.strip():
+    if not str(response_text).strip():
         logger.warning("tone_appropriate: empty response_text → 0.0")
         result = 0.0
-    elif os.getenv("AZURE_OPENAI_API_KEY") and os.getenv("AZURE_OPENAI_ENDPOINT"):
-        result = _llm_tone_score(response_text)
     else:
-        result = _heuristic_tone_score(response_text)
+        # Always try LLM scorer; it falls back to heuristic internally on any failure
+        result = _llm_tone_score(str(response_text))
 
     logger.debug("tone_appropriate: score=%.1f", result)
     _try_post_to_langfuse(state, result)
