@@ -60,3 +60,10 @@ node_modules/
 docs/superpowers/
 
 .claude/
+
+# Eval LLM cache (regenerated on demand)
+eval/synthetic_data/.cache_*.jsonl
+
+# Burn debug output
+data/burn_results.json
+eval/runs/full_2026*.json
