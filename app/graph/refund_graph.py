@@ -149,7 +149,10 @@ async def build_graph(
     builder.add_node("verification", verification_node)
     builder.add_node("issue_refund_node", issue_refund_node)
     builder.add_node("escalate", escalate_node)
-    builder.add_node("respond", respond_node)
+    builder.add_node(
+        "respond",
+        functools.partial(respond_node, llm=resolved_llm),
+    )
 
     # Internal pre-approval node: sets awaiting_human_approval=True before interrupt
     builder.add_node("_prepare_approval", _prepare_approval_node)

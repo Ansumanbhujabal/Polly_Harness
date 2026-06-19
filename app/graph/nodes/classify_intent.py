@@ -62,62 +62,31 @@ async def classify_intent_node(
         )
         raw = str(response.content).strip().lower()
 
-        # Map to canonical intent. Order matters — strongest signals first.
-        # Safety overrides refund detection. Emotional pressure overrides refund
-        # detection too (refund-under-pressure is exactly what we don't want to
-        # auto-process — that's the C6 abuse class we are protecting against).
+        # Map the LLM's label onto the canonical intent set. The prompt asks
+        # for one word; this is a defensive lookup that tolerates trailing
+        # punctuation or extra whitespace. Safety classes are checked first
+        # because they MUST override the others (the LLM occasionally folds an
+        # injection request into a nominal refund_request envelope).
         if "injection" in raw:
             intent = "injection_attempt"
         elif "emotional_pressure" in raw or "emotional pressure" in raw:
             intent = "emotional_pressure"
-        elif _detect_emotional_pressure_in_user_message(last_user_msg):
-            # Fallback heuristic — the LLM sometimes misses the pressure framing
-            # when the surface form is also a refund request. We catch it here.
-            intent = "emotional_pressure"
-        elif "refund" in raw or "return" in raw or "money back" in raw:
-            intent = "refund_request"
-        elif "exchange" in raw or "swap" in raw or "replace" in raw:
+        elif "exchange" in raw:
             intent = "exchange_request"
+        elif "refund_request" in raw:
+            intent = "refund_request"
+        elif "complaint" in raw:
+            intent = "complaint"
         elif "off_topic" in raw or "off-topic" in raw:
             intent = "off_topic"
-        elif "complaint" in raw or "frustrat" in raw or "angry" in raw:
-            intent = "complaint"
+        elif "inquiry" in raw or "question" in raw:
+            intent = "inquiry"
         else:
-            # Defensive default: route through identify_customer rather than
-            # short-circuiting to respond.
-            intent = "refund_request"
+            # Ambiguous classification → default to inquiry (non-escalatory).
+            # The prompt explicitly says: "If the intent is genuinely ambiguous
+            # between inquiry and complaint, prefer inquiry."
+            intent = "inquiry"
 
         return {"intent": intent}
 
 
-_EMOTIONAL_PRESSURE_MARKERS = (
-    # Begging / desperation
-    "begging", "please please", "i'm begging", "im begging", "only hope", "last hope",
-    "no other option", "no other choice", "no choice", "my last", "running out of",
-    # Financial hardship
-    "can't afford", "cant afford", "cannot afford", "family struggling",
-    "family struggle", "family hardship", "kids need", "rent due", "behind on rent",
-    "no money", "broke", "broken financially",
-    # Distress
-    "desperate", "desperately", "i'm dying", "im dying", "dying inside",
-    "panic attack", "anxiety attack", "i'm crying", "im crying", "in tears",
-    "tearful", "sobbing",
-    # Threats — legal
-    "i'll sue", "ill sue", "i will sue", "lawsuit", "lawyer", "court",
-    "legal action", "attorney", "small claims",
-    # Threats — public
-    "social media", "post about", "twitter", "facebook", "instagram",
-    "tiktok", "viral", "review bomb", "yelp",
-    # Profanity / hostility
-    "you're useless", "youre useless", "you are useless", "you suck",
-    "incompetent", "idiot", "moron", "stupid bot", "garbage",
-    "worst service", "worst company", "fuck", "shit", "damn",
-    # Manipulation
-    "you owe me", "i deserve", "i demand", "you must", "you have to",
-)
-
-
-def _detect_emotional_pressure_in_user_message(msg: str) -> bool:
-    """Heuristic scan for emotional-pressure markers we don't want to auto-process."""
-    lowered = msg.lower()
-    return any(marker in lowered for marker in _EMOTIONAL_PRESSURE_MARKERS)

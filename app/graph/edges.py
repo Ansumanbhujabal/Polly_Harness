@@ -19,11 +19,24 @@ from app.domain.models import AgentState, RefundDecisionKind
 
 def route_after_classify_intent(
     state: AgentState,
-) -> Literal["identify_customer", "respond"]:
-    """Off-topic and inquiry short-circuit directly to respond."""
+) -> Literal["identify_customer", "respond", "escalate"]:
+    """Branch out of classify_intent.
+
+    - Conversational intents (off_topic, inquiry, complaint) → respond.
+      They're not refund actions, so they MUST NOT enter the eligibility /
+      fraud / decision pipeline.
+    - Safety classes (injection_attempt, emotional_pressure) → escalate.
+      Per the intent_classifier prompt: refunds-under-pressure undermine
+      policy integrity, so these always route to a human regardless of
+      eligibility. The graph treats this as a non-negotiable invariant —
+      not a heuristic.
+    - Everything else → identify_customer (the normal refund path).
+    """
     intent = state.intent or "refund_request"
-    if intent in ("off_topic", "inquiry"):
+    if intent in ("off_topic", "inquiry", "complaint"):
         return "respond"
+    if intent in ("emotional_pressure", "injection_attempt"):
+        return "escalate"
     return "identify_customer"
 
 
