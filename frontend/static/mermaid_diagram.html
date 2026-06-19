@@ -1,0 +1,59 @@
+<!--
+  Mermaid architecture diagram for the Refund Agent harness.
+
+  All 9 layer node identifiers MUST match LayerName.value exactly so that
+  sse_listener.js can target them with `document.getElementById("flowchart-<layer>-0")`.
+
+  The CDN script tag initialises Mermaid automatically on load.
+-->
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "neutral",
+    flowchart: { curve: "basis" }
+  });
+</script>
+
+<div class="mermaid" id="refund-agent-architecture">
+flowchart TB
+    subgraph INPUT["User Input"]
+        USER["Customer Message"]
+    end
+
+    subgraph HARNESS["9-Layer Harness"]
+        L1_INSTRUCTIONS["L1_INSTRUCTIONS\nSystem Prompt + agentic.md"]
+        L2_CONTEXT["L2_CONTEXT\nRAG Policy Retrieval"]
+        L3_TOOLS["L3_TOOLS\nCRM / Policy / Refund Tools"]
+        L4_EXECUTION["L4_EXECUTION\nTool Executor + Retry"]
+        L5_STATE["L5_STATE\nSQLite Durable State"]
+        L6_ORCHESTRATION["L6_ORCHESTRATION\nLangGraph RefundGraph"]
+        L7_SUBAGENTS["L7_SUBAGENTS\nFraud Check Sub-agent"]
+        L8_SKILLS["L8_SKILLS\nEmotional / Edge-case Skills"]
+        L9_VERIFICATION["L9_VERIFICATION\nPolicy Assertion + Injection Check"]
+    end
+
+    subgraph CROSSCUT["Cross-Cutting"]
+        INCIDENT_LOOP["INCIDENT_LOOP\nFailure → Infrastructure"]
+        CACHE["CACHE\nLangfuse Prompt Cache"]
+    end
+
+    subgraph OUTPUT["Decision Output"]
+        DECISION["Final Decision\nAPPROVE / DENY / ESCALATE / INTERRUPT"]
+    end
+
+    USER --> L1_INSTRUCTIONS
+    L1_INSTRUCTIONS --> L2_CONTEXT
+    L2_CONTEXT --> L3_TOOLS
+    L3_TOOLS --> L4_EXECUTION
+    L4_EXECUTION --> L5_STATE
+    L5_STATE --> L6_ORCHESTRATION
+    L6_ORCHESTRATION --> L7_SUBAGENTS
+    L6_ORCHESTRATION --> L8_SKILLS
+    L7_SUBAGENTS --> L9_VERIFICATION
+    L8_SKILLS --> L9_VERIFICATION
+    L9_VERIFICATION --> DECISION
+    L9_VERIFICATION --> INCIDENT_LOOP
+    L1_INSTRUCTIONS -.->|"prompt cache"| CACHE
+    INCIDENT_LOOP -.->|"proposals"| L1_INSTRUCTIONS
+</div>
