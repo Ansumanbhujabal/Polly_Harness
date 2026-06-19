@@ -363,9 +363,15 @@ async def _run(args: argparse.Namespace) -> int:
 
     import json
 
-    ground_truth: list[dict[str, Any]] = json.loads(
-        ground_truth_path.read_text(encoding="utf-8")
-    )
+    raw = json.loads(ground_truth_path.read_text(encoding="utf-8"))
+    # Support both {"cases": [...]} wrapper and a bare list
+    if isinstance(raw, dict) and "cases" in raw:
+        ground_truth: list[dict[str, Any]] = raw["cases"]
+    elif isinstance(raw, list):
+        ground_truth = raw
+    else:
+        logger.error("Unexpected ground truth shape: %s", type(raw))
+        return 1
     logger.info("Loaded %d ground truth cases from %s", len(ground_truth), ground_truth_path)
 
     # Filter by axes
