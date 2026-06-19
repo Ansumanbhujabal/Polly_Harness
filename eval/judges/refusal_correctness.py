@@ -162,6 +162,13 @@ def score(state: AgentState | dict, expected: dict, *, llm: Any = None) -> dict:
     offers_alternative = bool(parsed.get("offers_alternative", False))
     alternatives_listed: list[str] = parsed.get("alternatives_listed", [])
 
+    # When the ground-truth case has no expected_reason_code (e.g. C6 abuse cases —
+    # there's no specific policy violation to cite, the agent just escalates), we
+    # cannot evaluate cites_reason against an expectation. Treat as pass for that
+    # criterion to avoid penalising a well-formed empathetic escalation.
+    if not expected_reason_code.strip():
+        cites_reason = True
+
     passed = acknowledges and cites_reason and offers_alternative
     # Partial credit: fraction of three checks that are true
     score_val = round(sum([acknowledges, cites_reason, offers_alternative]) / 3, 4)
