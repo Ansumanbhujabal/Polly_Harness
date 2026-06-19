@@ -134,4 +134,4 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-Built by [Ansuman SS Bhujabala](mailto:dev@anyfeast.com) · AI Engineer · 2026
+Built by Ansuman SS Bhujabala · AI Engineer · 2026
