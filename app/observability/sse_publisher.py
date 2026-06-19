@@ -228,4 +228,11 @@ def _reset_state_for_testing() -> None:
         pass
 
 
-__all__ = ["push_event", "sse_event_stream", "_reset_state_for_testing"]
+def get_conversation_events(conversation_id: str) -> list[LayerEvent]:
+    """Return a snapshot of buffered events for *conversation_id*, sorted by timestamp ascending."""
+    with _buffer_lock:
+        events = list(_conv_buffers.get(conversation_id, []))
+    return sorted(events, key=lambda e: e.timestamp)
+
+
+__all__ = ["push_event", "sse_event_stream", "get_conversation_events", "_reset_state_for_testing"]

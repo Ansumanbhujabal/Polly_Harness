@@ -15,11 +15,12 @@ Public contract (SPEC_OBSERVABILITY §Contract):
 
 from app.observability.langfuse_client import get_langfuse_client
 from app.observability.layer_event_emitter import LayerEventEmitter, get_emitter
-from app.observability.sse_publisher import push_event, sse_event_stream
+from app.observability.sse_publisher import get_conversation_events, push_event, sse_event_stream
 from app.observability.structured_logger import get_logger
 
 __all__ = [
     "LayerEventEmitter",
+    "get_conversation_events",
     "get_emitter",
     "get_langfuse_client",
     "get_logger",
