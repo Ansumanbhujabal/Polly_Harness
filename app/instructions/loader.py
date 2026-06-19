@@ -112,11 +112,11 @@ def _resolve_prompt(prompt_name: str, version: str | None) -> tuple[str, str, st
 
     # Cache hit
     if _is_cached(key):
-        logger.debug("prompt_cache_hit", extra={"name": prompt_name, "version": version})
+        logger.debug("prompt_cache_hit", extra={"prompt": prompt_name, "version": version})
         content, _fetched = _prompt_cache[key]
         return content, _last_resolved_version, "cached"
 
-    logger.debug("prompt_cache_miss", extra={"name": prompt_name, "version": version})
+    logger.debug("prompt_cache_miss", extra={"prompt": prompt_name, "version": version})
 
     # Langfuse path
     if settings.langfuse_configured:
@@ -129,7 +129,7 @@ def _resolve_prompt(prompt_name: str, version: str | None) -> tuple[str, str, st
         except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "langfuse_prompt_fetch_failed",
-                extra={"name": prompt_name, "error": str(exc)},
+                extra={"prompt": prompt_name, "error": str(exc)},
             )
             # Fall through to local fallback
 

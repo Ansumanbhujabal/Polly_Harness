@@ -62,14 +62,23 @@ async def classify_intent_node(
         )
         raw = str(response.content).strip().lower()
 
-        # Map to canonical intent
-        if "refund" in raw:
+        # Map to canonical intent. Order matters — check the strongest signals
+        # first. "return this" is a refund_request in our taxonomy (we use
+        # refunds-and-returns interchangeably for the e-commerce policy).
+        if "injection" in raw:
+            intent = "injection_attempt"
+        elif "refund" in raw or "return" in raw or "money back" in raw:
             intent = "refund_request"
-        elif "exchange" in raw:
+        elif "exchange" in raw or "swap" in raw or "replace" in raw:
             intent = "exchange_request"
         elif "off_topic" in raw or "off-topic" in raw:
             intent = "off_topic"
+        elif "complaint" in raw or "frustrat" in raw or "angry" in raw:
+            intent = "complaint"
         else:
-            intent = "inquiry"
+            # Defensive default: route through identify_customer rather than
+            # short-circuiting to respond. Lets the policy layer make the
+            # decision instead of the classifier guessing.
+            intent = "refund_request"
 
         return {"intent": intent}

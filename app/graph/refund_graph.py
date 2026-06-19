@@ -165,11 +165,16 @@ async def build_graph(
     builder.add_edge(START, "intake")
     builder.add_edge("intake", "classify_intent")
 
-    # classify_intent → identify_customer | respond  (off_topic / inquiry short-circuit)
+    # classify_intent → identify_customer | respond | escalate
+    # (off_topic/inquiry short-circuit to respond; injection_attempt/complaint escalate)
     builder.add_conditional_edges(
         "classify_intent",
         route_after_classify_intent,
-        {"identify_customer": "identify_customer", "respond": "respond"},
+        {
+            "identify_customer": "identify_customer",
+            "respond": "respond",
+            "escalate": "escalate",
+        },
     )
 
     # identify_customer → retrieve_policy | escalate  (identity mismatch)
