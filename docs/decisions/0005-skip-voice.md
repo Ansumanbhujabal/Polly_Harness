@@ -5,11 +5,11 @@
 
 ## Context
 
-The WORPODD challenge brief lists "voice pipeline (e.g., OpenAI Realtime API, ElevenLabs, or LiveKit)" as a **bonus** — not a requirement. The temptation in any take-home is to chase bonus credit. The realistic cost: 1–2 days of integration time, fragile WebSocket transport debugging, and a feature that does not advance the harness narrative.
+A voice pipeline (e.g., OpenAI Realtime API, ElevenLabs, or LiveKit) was considered as an optional surface. The realistic cost: 1–2 days of integration time, fragile WebSocket transport debugging, and a feature that does not advance the harness narrative.
 
 ## Decision
 
-**Skip voice entirely.** Document the cut explicitly in the README under "What this submission does NOT do (scope discipline)." Leave a stub interface note at `frontend/static/voice_extension.md` describing how voice would slot in via the existing SSE event spine.
+**Skip voice entirely.** Document the cut explicitly in the README under "Scope (v0.1) — what is intentionally out." Leave a stub interface note at `frontend/static/voice_extension.md` describing how voice would slot in via the existing SSE event spine.
 
 ## Consequences
 

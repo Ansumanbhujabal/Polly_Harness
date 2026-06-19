@@ -107,7 +107,7 @@ This document is the contract between the 9-layer harness engineering framework 
 - **Gradio + FastAPI** → free, deploys to HF Spaces, supports custom HTML for the dynamic diagram
 - **MCP server** → the harness doc names MCP explicitly as the structured-schema pattern for Layer 3; honoring that is the senior signal
 - **SQLite over MongoDB** → simpler for single-container HF Spaces deploy; SqliteSaver is battle-tested in LangGraph
-- **HF Spaces** → free public URL, recruiter-recognizable, 16GB RAM, Docker SDK supports our multi-process stack
+- **HF Spaces** → free public URL, widely recognizable, 16GB RAM, Docker SDK supports our multi-process stack
 
 ---
 

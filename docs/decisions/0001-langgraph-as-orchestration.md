@@ -19,6 +19,6 @@ Use **LangGraph 0.2+** with its `SqliteSaver` checkpointer and `interrupt()` pri
 - `interrupt()` is the native expression of an HITL approval gate — the graph suspends, the API surfaces a `PendingApproval`, the human decides, `aresume()` continues from the checkpoint.
 - Subgraphs (`fraud_check`) map to Layer 7 (Sub-agents) with isolated state — the parent never sees the 90-day refund history dump, only the distilled `FraudCheckResult`.
 
-**What we gave up:** CrewAI's role-prompt ergonomics, and the lighter-weight feel of raw function-calling. Both would have required us to hand-build durable state, retries, and the approval gate from scratch — at 7-day take-home scope, building those would have squeezed out time for the layers that differentiate the submission (Verification, Incident Loop).
+**What we gave up:** CrewAI's role-prompt ergonomics, and the lighter-weight feel of raw function-calling. Both would have required us to hand-build durable state, retries, and the approval gate from scratch — at v0.1 scope, building those would have squeezed out time for the layers that differentiate the system (Verification, Incident Loop).
 
-**Verification:** The graph topology lives in `app/graph/refund_graph.py`. The approval gate is exercised by `tests/test_graph.py::test_interrupt_and_resume_for_above_cap_refund`, which was the FIRST test written (a discipline flagged by the design's risk register §10 and visible in commit history).
+**Verification:** The graph topology lives in `app/graph/refund_graph.py`. The approval gate is exercised by `tests/test_graph.py::test_interrupt_and_resume_for_above_cap_refund`, which was the FIRST test written (a discipline visible in commit history).

@@ -3,7 +3,7 @@
 **Layer:** Cross-cutting (the 10th conceptual artifact — the Loom's hero)
 **Owner:** `app/learning/`
 
-The Incident Loop is the most distinctive piece of the submission. It is the literal embodiment of the harness doctrine: *"every failure becomes a new piece of infrastructure."* When a verification check blocks or a human overrides the agent's recommendation, a structured `incident.yaml` is written. Periodically, the distiller reads the unprocessed incidents, runs an LLM over them with a structured-output prompt, and emits **PR-ready unified-diff proposals** for new skills, new verification rules, or policy clarifications. The proposals are not auto-applied — they go to `data/proposals/` for human review.
+The Incident Loop is the most distinctive piece of the system. It is the literal embodiment of the harness doctrine: *"every failure becomes a new piece of infrastructure."* When a verification check blocks or a human overrides the agent's recommendation, a structured `incident.yaml` is written. Periodically, the distiller reads the unprocessed incidents, runs an LLM over them with a structured-output prompt, and emits **PR-ready unified-diff proposals** for new skills, new verification rules, or policy clarifications. The proposals are not auto-applied — they go to `data/proposals/` for human review.
 
 This is the loop the Loom narrates at minutes 8:45–end.
 

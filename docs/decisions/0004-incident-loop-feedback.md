@@ -5,7 +5,7 @@
 
 ## Context
 
-The harness engineering doctrine — quoted in `harness_engineering_idea_i_have.md` — is: *"every failure becomes a new piece of infrastructure."* A submission that *talks* about the doctrine without *embodying* it would be the median LangGraph tutorial with extra prose. The doctrine had to become code, and the code had to be visible in the Loom.
+The harness engineering doctrine — quoted in `harness_engineering_idea_i_have.md` — is: *"every failure becomes a new piece of infrastructure."* A project that *talks* about the doctrine without *embodying* it would be the median LangGraph tutorial with extra prose. The doctrine had to become code, and the code had to be visible in the walkthrough video.
 
 ## Decision
 
@@ -18,10 +18,10 @@ Build the **Incident Loop** as the system's 10th conceptual artifact (cross-cutt
 
 ## Consequences
 
-**Why this is the Loom's hero:**
+**Why this is the centerpiece:**
 - Hardest to fake. A competent LangGraph chat UI can't be retrofitted with a working distiller in a recording night.
-- Smallest UI surface, biggest narrative weight. The Loom closes on `data/proposals/EXAMPLE.md` and a live `make distill` run — the diff is real, `git apply --check` passes on it, the audience sees infrastructure being proposed from failure.
-- Strongest senior signal: it converts "production grade" from a buzzword into a verifiable lifecycle.
+- Smallest UI surface, biggest narrative weight. The walkthrough closes on `data/proposals/EXAMPLE.md` and a live `make distill` run — the diff is real, `git apply --check` passes on it, the audience sees infrastructure being proposed from failure.
+- Converts "production grade" from a buzzword into a verifiable lifecycle.
 
 **What we gave up:** A more conservative system would have left this as a roadmap bullet. We took the implementation risk because the doctrine demanded it.
 

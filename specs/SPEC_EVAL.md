@@ -3,7 +3,7 @@
 **Layer:** Cross-cutting (the CI quality gate)
 **Owner:** `eval/` + `.github/workflows/`
 
-The Evaluation layer turns the 5 holding-the-line cases into a programmatic eval suite, generates 50+ adversarial mutations of those cases via an LLM mutator, scores agent runs with 4 Langfuse LLM-as-judge evaluators, and gates merges through GitHub Actions. The thresholds at which the suite ships green are written in the design's production-grade pillar §6.9; judge calibration may iterate post-submission without changing the gate semantics.
+The Evaluation layer turns the 5 holding-the-line cases into a programmatic eval suite, generates 50+ adversarial mutations of those cases via an LLM mutator, scores agent runs with 4 Langfuse LLM-as-judge evaluators, and gates merges through GitHub Actions. The thresholds at which the suite ships green are documented in the production-grade contract; judge calibration may iterate without changing the gate semantics.
 
 ## Contract
 

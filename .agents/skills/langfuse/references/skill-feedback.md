@@ -49,4 +49,4 @@ If the `gh` CLI is not authenticated or the request fails, give the user this li
 https://github.com/langfuse/skills/discussions/new?category=ideas-improvements
 ```
 
-After submission, share the discussion URL with the user.
+After posting, share the discussion URL with the user.

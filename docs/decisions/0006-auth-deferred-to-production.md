@@ -5,7 +5,7 @@
 
 ## Context
 
-The submission is a single-user demo on Hugging Face Spaces. The deployed `*.hf.space` URL is publicly reachable but there is one "agent" and one "customer" in the live demo at a time. Adding real auth (FastAPI middleware + tenant scoping + identity provider integration) would consume implementation time without changing what the Loom shows.
+The v0.1 release is a single-user demo on Hugging Face Spaces. The deployed `*.hf.space` URL is publicly reachable but there is one "agent" and one "customer" in the live demo at a time. Adding real auth (FastAPI middleware + tenant scoping + identity provider integration) would consume implementation time without changing what the walkthrough shows.
 
 ## Decision
 
@@ -19,9 +19,9 @@ The shape we'd take in production is documented for clarity:
 ## Consequences
 
 **Why deferring is the right call here:**
-- A take-home reviewer is not testing whether you can wire `passlib` and `python-jose`. They're testing whether you can show what production scaffolding would look like, and where the seams are.
+- The point of v0.1 is not to demonstrate that `passlib` and `python-jose` can be wired — it's to show what production scaffolding would look like, and where the seams are.
 - The Repository facade is already the seam — `tenant_id` would be added there with one column on each table and one filter on each query. The change is small *because* the architecture anticipated it.
 
-**What we gave up:** An end-to-end "production-ready" claim that the Loom could close on. The honest claim instead: "production-grade for a single-tenant single-user demo, with an explicit named seam for multi-tenant."
+**What we gave up:** An end-to-end "production-ready" claim that the walkthrough could close on. The honest claim instead: "production-grade for a single-tenant single-user demo, with an explicit named seam for multi-tenant."
 
 **Verification:** No `Depends` of auth shape exists in `app/api/routes/`. README lists "No authentication / authorization" under scope cuts. The Repository's method signatures take `conversation_id` (not `tenant_id`), making the missing column visible to a future reader.

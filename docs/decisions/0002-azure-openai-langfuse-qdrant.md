@@ -5,7 +5,7 @@
 
 ## Context
 
-Production-grade agentic systems need prompt management, traces, metrics, evals, and (optionally) a semantic cache. The naive choice is a bag of point tools — LangSmith for traces, Promptfoo for evals, MLflow for prompt versions, Redis for cache. That bag is four integrations, four auth surfaces, four UI conventions, and four points of failure. At 7-day take-home scope, integration time on auxiliary tools squeezes out time spent on the harness narrative.
+Production-grade agentic systems need prompt management, traces, metrics, evals, and (optionally) a semantic cache. The naive choice is a bag of point tools — LangSmith for traces, Promptfoo for evals, MLflow for prompt versions, Redis for cache. That bag is four integrations, four auth surfaces, four UI conventions, and four points of failure. At v0.1 scope, integration time on auxiliary tools squeezes out time spent on the harness narrative.
 
 ## Decision
 

@@ -82,7 +82,7 @@ Every significant decision has an ADR in [`docs/decisions/`](docs/decisions/). H
 | Add a new sub-agent | Add subgraph in `app/graph/subagents/`, wire from main graph as conditional edge |
 | Change the LLM | Update `app/observability/langfuse_client.py` model param + `.env` |
 
-## What this submission does NOT do (scope discipline)
+## Scope (v0.1) — what is intentionally out
 
 - **No voice pipeline.** Documented in [ADR-0005](docs/decisions/0005-skip-voice.md). Stub interface in `frontend/static/voice_extension.md` for future.
 - **No real payment processor.** `issue_refund` writes to SQLite and emits an event. Production would wire Stripe / Adyen.
