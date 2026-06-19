@@ -39,7 +39,7 @@ Verdict thresholds from `eval/thresholds.yaml`. A run that hits all of these is 
 | **v2** | 2026-06-19 05:19 | intent classifier fix (LogRecord collision + return/complaint mapping + escalate edge) | FAIL (NEUTRAL Δ) | 28.3% | [v2_findings.md](runs/v2_findings.md) |
 | **v3** | 2026-06-19 05:32 | judge interface unification (dict\|AgentState) + load_system_prompt(prompt_name) API | FAIL (IMPROVED Δ) | **33.2%** (+4.9pp) | [v3_findings.md](runs/v3_findings.md) |
 | **v4** | 2026-06-19 05:43 | runner dict-return handler (unblocks G2 judges' dict shape) | FAIL (IMPROVED Δ) | **41.0%** (+7.8pp) | [v4_findings.md](runs/v4_findings.md) |
-| v5 | _pending_ | L9 real LLM-judge for paraphrased injection + tone judge `settings` route — **first product-level fix** | — | — | — |
+| **v5** | 2026-06-19 06:03 | real L9 LLM-judge for paraphrased injection + tone judge `settings` route — **first product-level fix** | FAIL (IMPROVED Δ) | **63.4%** (+22.4pp) | [v5_findings.md](runs/v5_findings.md) |
 | v6 | _pending_ | C3 LLM poisoning fix — previous-turn-grounding check + policy_grounding tightening | — | — | — |
 | v7 | _pending_ | C6 tone — escalation node empathy preamble | — | — | — |
 | v8 | _pending_ | latency — parallelize independent nodes + enable semantic cache | — | — | — |
