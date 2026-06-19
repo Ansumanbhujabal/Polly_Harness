@@ -92,13 +92,14 @@ def _llm_score(
 
 def _build_llm(deployment: str | None = None) -> Any:
     """Lazily create an AzureChatOpenAI instance for LLM judging."""
+    from app.config import settings
     from langchain_openai import AzureChatOpenAI
 
     return AzureChatOpenAI(
-        azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
-        api_key=os.environ["AZURE_OPENAI_API_KEY"],
-        azure_deployment=deployment or os.getenv("AZURE_OPENAI_DEPLOYMENT_CHAT", "gpt-4o"),
-        api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-10-21"),
+        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+        api_key=settings.AZURE_OPENAI_API_KEY,
+        azure_deployment=deployment or settings.AZURE_OPENAI_DEPLOYMENT_CHAT,
+        api_version=settings.AZURE_OPENAI_API_VERSION,
         temperature=0,
         max_tokens=256,
     )
