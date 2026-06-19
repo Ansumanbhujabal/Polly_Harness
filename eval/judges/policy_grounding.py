@@ -2,32 +2,29 @@
 
 Deterministic refinement of policy_correctness for axis A1.
 
-Catches a failure mode that policy_correctness cannot detect on its own:
-the LLM cited a clause ID that *sounds* plausible but was never retrieved
-from the policy vector store in this run.
+v2 (v11): coverage-based scoring instead of Jaccard. The agent SHOULD cite every
+expected clause; citing additional *grounded* clauses is not a defect — agents
+often cite supporting clauses (e.g., POLICY-007 alongside POLICY-001) which is
+correct behavior. We measure coverage + grounding instead of strict-equality.
 
 Two independent signals:
 
   SIGNAL-1  Coverage: every clause listed in expected.expected_cited_clauses
              appears in state.final_decision.cited_clause_ids.
+             (coverage = |expected ∩ actual| / |expected|)
 
   SIGNAL-2  Grounding: every clause cited by the agent appears in
              state.relevant_clauses[*].clause_id (i.e., it was actually
              retrieved, not hallucinated by the LLM).
 
-Score = jaccard(expected_clauses, actual_cited_clauses)
-          × (1.0 if all cited clauses were retrieved else 0.5)
+Score = coverage × (1.0 if all cited clauses were retrieved else 0.5)
 
-Where jaccard = |intersection| / |union|.
 The 0.5 multiplier is a grounding penalty — a correct-looking citation that
 was never retrieved is half as trustworthy as one that was.
 
-Pass = score >= 0.9.
+Pass = score >= 0.9. Empty expected_cited_clauses → trivial pass.
 
-When expected_cited_clauses is empty (e.g., refusal / escalation cases),
-the judge trivially passes (no clause to verify).
-
-Langfuse judge prompt name: "eval.policy_grounding.v1"
+Langfuse judge prompt name: "eval.policy_grounding.v2"
 """
 
 from __future__ import annotations
@@ -39,18 +36,15 @@ from app.domain.models import AgentState
 
 logger = logging.getLogger(__name__)
 
-LANGFUSE_PROMPT_NAME = "eval.policy_grounding.v1"
+LANGFUSE_PROMPT_NAME = "eval.policy_grounding.v2"
 PASS_THRESHOLD: float = 0.9
 
 
-def _jaccard(set_a: set[str], set_b: set[str]) -> float:
-    """Jaccard similarity: |intersection| / |union|. Returns 1.0 when both sets empty."""
-    if not set_a and not set_b:
+def _coverage(expected: set[str], actual: set[str]) -> float:
+    """Coverage = |expected ∩ actual| / |expected|. 1.0 when expected is empty."""
+    if not expected:
         return 1.0
-    union = set_a | set_b
-    if not union:
-        return 1.0
-    return len(set_a & set_b) / len(union)
+    return len(expected & actual) / len(expected)
 
 
 def score(state: AgentState | dict, expected: dict, *, llm: Any = None) -> dict:  # noqa: ARG001
@@ -112,14 +106,14 @@ def score(state: AgentState | dict, expected: dict, *, llm: Any = None) -> dict:
             if cid:
                 retrieved_ids.add(cid)
 
-    # SIGNAL-1: Jaccard between expected and actual cited clauses
-    jaccard_val = _jaccard(expected_clauses, actual_cited)
+    # SIGNAL-1: Coverage — every expected clause must appear in actual_cited
+    coverage_val = _coverage(expected_clauses, actual_cited)
 
     # SIGNAL-2: Grounding check — any cited clause not in retrieved set is hallucinated
     ungrounded = actual_cited - retrieved_ids
     grounding_penalty = 0.5 if ungrounded else 1.0
 
-    score_val = round(jaccard_val * grounding_penalty, 4)
+    score_val = round(coverage_val * grounding_penalty, 4)
     passed = score_val >= PASS_THRESHOLD
 
     # Build reason string
@@ -138,8 +132,8 @@ def score(state: AgentState | dict, expected: dict, *, llm: Any = None) -> dict:
     reason = "; ".join(parts) if parts else "all cited clauses match expected and are grounded"
 
     logger.debug(
-        "policy_grounding: jaccard=%.4f grounding_penalty=%.1f score=%.4f (conv=%s)",
-        jaccard_val,
+        "policy_grounding: coverage=%.4f grounding_penalty=%.1f score=%.4f (conv=%s)",
+        coverage_val,
         grounding_penalty,
         score_val,
         conversation_id,
@@ -162,7 +156,7 @@ def score(state: AgentState | dict, expected: dict, *, llm: Any = None) -> dict:
             "missing_from_actual": sorted(missing_from_actual),
             "extra_in_actual": sorted(extra_in_actual),
             "ungrounded_citations": sorted(ungrounded),
-            "jaccard": jaccard_val,
+            "coverage": coverage_val,
             "grounding_penalty_applied": bool(ungrounded),
             "grounding_multiplier": grounding_penalty,
         },
@@ -196,8 +190,8 @@ def get_langfuse_judge_config() -> dict:
         "name": LANGFUSE_PROMPT_NAME,
         "type": "heuristic",
         "description": (
-            "Jaccard similarity between expected and actual cited clauses, "
-            "multiplied by 0.5 grounding penalty when any cited clause was not "
-            "in the retrieved set. Pass threshold: score >= 0.9."
+            "Coverage (expected_clauses ⊆ actual_cited) × 0.5 grounding penalty "
+            "when any cited clause was not in the retrieved set. "
+            "Pass threshold: score >= 0.9."
         ),
     }
