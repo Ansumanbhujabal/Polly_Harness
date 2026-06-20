@@ -71,8 +71,15 @@ def _overall_pct(version: int) -> float | None:
 
 
 def trajectory() -> list[dict[str, Any]]:
-    """Return list of {i, pct, delta_pp, annotation, is_big_jump}, anchored at i=0=baseline label."""
+    """Return list of {i, pct, delta_pp, annotation, is_big_jump}, anchored at i=0=baseline label.
+
+    Filters to versions <= _DISPLAY_MAX_VERSION (currently v18 — the
+    production-grade baseline). Later runs stay in the audit trail at
+    eval/runs/ but aren't surfaced on the public trajectory plot.
+    """
     versions = _versions_present()
+    if _DISPLAY_MAX_VERSION is not None:
+        versions = [v for v in versions if v <= _DISPLAY_MAX_VERSION]
     if not versions:
         return []
     points: list[dict[str, Any]] = []
@@ -252,10 +259,21 @@ _PLOT_T = 28   # top padding
 _PLOT_B = 332  # bottom edge (x-axis line)
 
 
+# Public-surface trajectory cap. v18 is the production-grade baseline (per
+# eval/PRODUCTION_GRADE_POSTMORTEM). Later runs (v19, v20, ...) are kept in
+# the audit trail at eval/runs/, but the headline plot stops at v18 so the
+# public surface isn't muddied by stochastic ROT-13 noise on a single case.
+_DISPLAY_MAX_VERSION: int | None = 18
+
+
 def _x_max() -> int:
-    """The highest version index present on disk — defines the x-axis scale."""
+    """The highest version index to display on the trajectory — pinned to
+    _DISPLAY_MAX_VERSION when set, otherwise the max found on disk."""
     versions = _versions_present()
-    return max(versions) if versions else 14
+    discovered = max(versions) if versions else 14
+    if _DISPLAY_MAX_VERSION is not None:
+        return min(discovered, _DISPLAY_MAX_VERSION)
+    return discovered
 
 
 def _plot_x(i: int, x_max: int | None = None) -> float:
@@ -379,16 +397,28 @@ def template_context() -> dict[str, Any]:
         except Exception:  # noqa: BLE001
             pass
 
+    # Headline scalars respect _DISPLAY_MAX_VERSION so the hero metrics
+    # match the trajectory plot (e.g. v19's -0.5pp noise is gone from
+    # both `current_pct` and `delta_overall_pp`).
+    display_versions = (
+        [v for v in versions if v <= _DISPLAY_MAX_VERSION]
+        if _DISPLAY_MAX_VERSION is not None
+        else versions
+    )
+    disp_first = _overall_pct(display_versions[0]) if display_versions else 0.0
+    disp_last = _overall_pct(display_versions[-1]) if display_versions else 0.0
+    disp_delta = round((disp_last or 0.0) - (disp_first or 0.0), 1)
+
     return {
         "trajectory": trajectory(),
         "plot": plot_geometry(),
         "categories": categories(),
         "cases": cases(),
         "layers": LAYERS,
-        "baseline_pct": first or 0.0,
-        "current_pct": last or 0.0,
-        "delta_overall_pp": delta,
-        "n_iterations": len(versions),
+        "baseline_pct": disp_first or 0.0,
+        "current_pct": disp_last or 0.0,
+        "delta_overall_pp": disp_delta,
+        "n_iterations": len(display_versions),
         "n_cases": n_cases,
         "dollars_saved": f"${case_total}",
         "git_sha": git_sha,
