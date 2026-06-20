@@ -318,6 +318,94 @@
     });
   }
 
+  // --- Free customer/order picker ---
+  const custSelect = document.getElementById("rh-chat-cust-select");
+  const orderSelect = document.getElementById("rh-chat-order-select");
+  let allCustomers = [];
+  let allOrders = [];
+  try {
+    allCustomers = JSON.parse(document.getElementById("rh-crm-customers").textContent || "[]");
+    allOrders = JSON.parse(document.getElementById("rh-crm-orders").textContent || "[]");
+  } catch (_) { /* leave empty */ }
+
+  function populateOrdersForCustomer(custId) {
+    if (!orderSelect) return;
+    orderSelect.innerHTML = "";
+    const matches = allOrders.filter((o) => o.customer_id === custId);
+    if (!custId || matches.length === 0) {
+      orderSelect.disabled = true;
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = custId ? "(no orders on file)" : "— choose a customer first —";
+      orderSelect.appendChild(opt);
+      return;
+    }
+    orderSelect.disabled = false;
+    const ph = document.createElement("option");
+    ph.value = "";
+    ph.textContent = `— choose one of ${matches.length} order${matches.length === 1 ? "" : "s"} —`;
+    orderSelect.appendChild(ph);
+    for (const o of matches) {
+      const opt = document.createElement("option");
+      opt.value = o.id;
+      const totalStr = (typeof o.total_usd === "number") ? `$${o.total_usd.toFixed(2)}` : "—";
+      opt.textContent = `${o.id} · ${o.items_summary} · ${totalStr}`;
+      orderSelect.appendChild(opt);
+    }
+  }
+
+  async function loadPickerContext() {
+    const custId = custSelect ? custSelect.value : "";
+    const orderId = orderSelect ? orderSelect.value : "";
+    if (!custId) {
+      activeCustomer = null;
+      activeOrder = null;
+      clearTicket();
+      conversationId = null;
+      lastTurnCompleted = false;
+      updateConvIdDisplay();
+      return;
+    }
+    activeCustomer = custId;
+    activeOrder = orderId || null;
+    conversationId = null;
+    lastTurnCompleted = false;
+    // Clear active scenario highlight — they're using the free picker now
+    if (scenariosEl) {
+      scenariosEl
+        .querySelectorAll(".rh-chat__chip--active")
+        .forEach((b) => b.classList.remove("rh-chat__chip--active"));
+    }
+    try {
+      const url =
+        "/api/v1/crm/context?customer_id=" + encodeURIComponent(activeCustomer) +
+        (activeOrder ? "&order_id=" + encodeURIComponent(activeOrder) : "");
+      const r = await fetch(url);
+      if (r.ok) {
+        const data = await r.json();
+        const expect = activeOrder
+          ? `Free chat as ${data.customer && data.customer.name || activeCustomer} regarding ${activeOrder}.`
+          : `Free chat as ${data.customer && data.customer.name || activeCustomer}. No order context loaded — Polly will ask for an order ID.`;
+        renderTicket(data.customer, data.order, expect);
+      } else {
+        renderTicket({ customer_id: activeCustomer }, activeOrder ? { order_id: activeOrder } : null, "Free chat — CRM context partial.");
+      }
+    } catch (_) {
+      renderTicket({ customer_id: activeCustomer }, activeOrder ? { order_id: activeOrder } : null, "Free chat — CRM context partial.");
+    }
+    inputEl.focus();
+  }
+
+  if (custSelect) {
+    custSelect.addEventListener("change", function () {
+      populateOrdersForCustomer(custSelect.value);
+      loadPickerContext();
+    });
+  }
+  if (orderSelect) {
+    orderSelect.addEventListener("change", loadPickerContext);
+  }
+
   // --- Reset thread ---
   if (resetBtn) {
     resetBtn.addEventListener("click", function () {

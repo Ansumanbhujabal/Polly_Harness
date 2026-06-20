@@ -18,6 +18,9 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EVAL_RUNS_DIR = REPO_ROOT / "eval" / "runs"
 LOG_PATH = REPO_ROOT / "eval" / "IMPROVEMENT_LOG.md"
+CUSTOMERS_PATH = REPO_ROOT / "data" / "crm" / "customers.json"
+ORDERS_PATH = REPO_ROOT / "data" / "crm" / "orders.json"
+POLICY_PATH = REPO_ROOT / "data" / "policy" / "refund_policy_v1.md"
 
 
 # --------------------------------------------------------------------------- #
@@ -234,6 +237,144 @@ def cases() -> list[dict[str, Any]]:
 # Architecture
 # --------------------------------------------------------------------------- #
 
+# --------------------------------------------------------------------------- #
+# CRM data — customer + order lists for the free-form chat picker
+# --------------------------------------------------------------------------- #
+
+def _load_json(path: Path) -> dict[str, Any]:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def all_customers() -> list[dict[str, Any]]:
+    """Return all customers as a list shaped for the JS picker."""
+    raw = _load_json(CUSTOMERS_PATH)
+    rows = raw.get("customers", raw) if isinstance(raw, dict) else raw
+    out: list[dict[str, Any]] = []
+    for c in rows or []:
+        out.append({
+            "id": c.get("customer_id", ""),
+            "name": c.get("name", ""),
+            "tier": c.get("tier", "standard"),
+            "email": c.get("email", ""),
+            "lifetime_value_usd": c.get("lifetime_value_usd", 0),
+            "prior_refunds_last_90d": c.get("prior_refunds_last_90d", 0),
+            "flagged_for_abuse": bool(c.get("flagged_for_abuse", False)),
+            "active_chargeback": bool(c.get("active_chargeback", False)),
+            "notes": c.get("notes", ""),
+        })
+    return out
+
+
+def all_orders() -> list[dict[str, Any]]:
+    """Return all orders as a list shaped for the JS picker."""
+    raw = _load_json(ORDERS_PATH)
+    rows = raw.get("orders", raw) if isinstance(raw, dict) else raw
+    out: list[dict[str, Any]] = []
+    for o in rows or []:
+        items = o.get("items", []) or []
+        name = ", ".join(i.get("name", i.get("sku", "?")) for i in items[:2])
+        if len(items) > 2:
+            name += f" +{len(items) - 2} more"
+        out.append({
+            "id": o.get("order_id", ""),
+            "customer_id": o.get("customer_id", ""),
+            "items_summary": name or "—",
+            "total_usd": o.get("total_usd", 0),
+            "status": o.get("status", ""),
+            "condition": o.get("item_condition_reported", ""),
+            "delivery_date": o.get("delivery_date", ""),
+        })
+    return out
+
+
+# --------------------------------------------------------------------------- #
+# Refund policy — parsed into structured sections for the rules UI
+# --------------------------------------------------------------------------- #
+
+_CLAUSE_RE = re.compile(r"^\*\*POLICY-(\d+)\*\*\s+—\s+(.+?)(?=^\*\*POLICY|\Z|^---|^##)", re.S | re.M)
+_SECTION_RE = re.compile(r"^##\s+Section\s+(\d+)\s+—\s+(.+?)$", re.M)
+
+
+def refund_rules() -> dict[str, Any]:
+    """Parse the policy doc into sections + clauses + the cheat-sheet table.
+
+    Returns:
+      {
+        "effective": "2026-01-01",
+        "owner": "Customer Operations",
+        "status": "Live",
+        "sections": [
+          {"n": 1, "title": "Return Windows", "clauses": [
+              {"id": "POLICY-001", "text": "..."}, ...
+          ]},
+          ...
+        ],
+        "quick_ref": [{"trigger": "...", "action": "...", "clause": "..."}, ...],
+      }
+    """
+    try:
+        raw = POLICY_PATH.read_text(encoding="utf-8")
+    except Exception:  # noqa: BLE001
+        return {"sections": [], "quick_ref": []}
+
+    # --- Header (Effective / Owner / Status) ---
+    header_re = re.compile(
+        r"\*\*Effective:\*\*\s*(\S+)\s*·\s*\*\*Owner:\*\*\s*([^·]+)·\s*\*\*Status:\*\*\s*(\S+)"
+    )
+    h = header_re.search(raw)
+    effective = h.group(1).strip() if h else "—"
+    owner = h.group(2).strip() if h else "—"
+    status = h.group(3).strip() if h else "—"
+
+    # --- Sections + clauses ---
+    sections: list[dict[str, Any]] = []
+    section_matches = list(_SECTION_RE.finditer(raw))
+    for i, m in enumerate(section_matches):
+        n = int(m.group(1))
+        title = m.group(2).strip()
+        body_start = m.end()
+        body_end = section_matches[i + 1].start() if i + 1 < len(section_matches) else len(raw)
+        body = raw[body_start:body_end]
+        # Stop at the next horizontal rule before a non-clause section
+        body = body.split("\n## ")[0]
+        clauses: list[dict[str, str]] = []
+        for cm in re.finditer(r"\*\*POLICY-(\d+)\*\*\s+—\s+(.+?)(?=\n\n\*\*POLICY|\n\n---|\n\n##|\Z)", body, re.S):
+            clauses.append({
+                "id": f"POLICY-{cm.group(1)}",
+                "text": cm.group(2).strip().replace("\n", " "),
+            })
+        # Skip sections without clauses (e.g. Section 9 Tone / Section 10 Change Control might still have)
+        if clauses:
+            sections.append({"n": n, "title": title, "clauses": clauses})
+
+    # --- Quick reference table ---
+    quick_ref: list[dict[str, str]] = []
+    qr_match = re.search(r"## Quick Reference.*?\n(.+?)\n\Z", raw, re.S)
+    if qr_match:
+        for line in qr_match.group(1).splitlines():
+            if not line.startswith("|") or "---" in line or "Trigger" in line:
+                continue
+            cells = [c.strip() for c in line.strip("|").split("|")]
+            if len(cells) >= 3:
+                quick_ref.append({
+                    "trigger": cells[0],
+                    "action": cells[1],
+                    "clause": cells[2],
+                })
+
+    return {
+        "effective": effective,
+        "owner": owner,
+        "status": status,
+        "sections": sections,
+        "quick_ref": quick_ref,
+        "total_clauses": sum(len(s["clauses"]) for s in sections),
+    }
+
+
 LAYERS: list[dict[str, str]] = [
     {"id": "L1", "name": "Instructions",       "role": "agentic.md · prompt registry"},
     {"id": "L2", "name": "Context Delivery",   "role": "Qdrant RAG · compactor"},
@@ -429,4 +570,8 @@ def template_context() -> dict[str, Any]:
         "dollars_saved": f"${case_total}",
         "git_sha": git_sha,
         "run_id": run_id,
+        # New: free customer/order picker + refund rules surface
+        "all_customers": all_customers(),
+        "all_orders": all_orders(),
+        "refund_rules": refund_rules(),
     }

@@ -24,6 +24,7 @@
       <a href="#evidence">Evidence</a>
       <a href="#architecture">Architecture</a>
       <a href="#flow">Flow</a>
+      <a href="#rules">Rules</a>
       <a href="#tryit">Try it</a>
       <a href="/admin">Admin</a>
       <a href="#contact" class="topbar__cta">Contact</a>
@@ -441,6 +442,79 @@
   </div>
 </section>
 
+<!-- ─────── Refund Rules (the policy Polly grounds on) ─────── -->
+<section id="rules">
+  <div class="shell">
+    <div class="section-head">
+      <div class="eyebrow">§ 4c — refund rules</div>
+      <h2>What Polly grounds on.</h2>
+      <p>
+        The {{ refund_rules.total_clauses }}-clause refund policy loaded into Polly's
+        conversational system prompt at module-init time. Every approve / deny /
+        escalate decision cites at least one clause ID below. The policy doc is the
+        single source of truth — change a clause here and the eval re-runs against
+        the new version.
+      </p>
+    </div>
+
+    <div class="rules-meta">
+      <span><strong>Effective</strong> {{ refund_rules.effective }}</span>
+      <span><strong>Owner</strong> {{ refund_rules.owner }}</span>
+      <span><strong>Status</strong> <span class="rules-status">{{ refund_rules.status }}</span></span>
+      <span><strong>Source</strong> <code>data/policy/refund_policy_v1.md</code></span>
+    </div>
+
+    <div class="rules-sections">
+      {% for s in refund_rules.sections %}
+      <div class="rules-section">
+        <div class="rules-section__head">
+          <span class="rules-section__num">§{{ s.n }}</span>
+          <span class="rules-section__title">{{ s.title }}</span>
+          <span class="rules-section__count">{{ s.clauses|length }} clause{{ '' if s.clauses|length == 1 else 's' }}</span>
+        </div>
+        <div class="rules-section__clauses">
+          {% for c in s.clauses %}
+          <div class="rules-clause">
+            <div class="rules-clause__id">{{ c.id }}</div>
+            <div class="rules-clause__text">{{ c.text }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if refund_rules.quick_ref %}
+    <div class="rules-cheatsheet">
+      <div class="rules-cheatsheet__head">
+        <span class="eyebrow">Cheat sheet — the table Polly grounds on for fast decisions</span>
+      </div>
+      <table class="rules-table">
+        <thead>
+          <tr>
+            <th>Trigger</th>
+            <th>Action</th>
+            <th>Clause(s)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in refund_rules.quick_ref %}
+          <tr>
+            <td>{{ row.trigger }}</td>
+            <td>
+              {% set act = row.action|lower %}
+              <span class="rules-action rules-action--{% if 'full refund' in act %}approve{% elif 'partial' in act or 'credit' in act %}partial{% elif 'deny' in act %}deny{% elif 'escalate' in act %}escalate{% else %}neutral{% endif %}">{{ row.action }}</span>
+            </td>
+            <td><code>{{ row.clause }}</code></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
 <!-- ─────── Try it (custom inline chat — no iframe) ─────── -->
 <section id="tryit" class="tryit">
   <div class="shell">
@@ -455,6 +529,40 @@
         free-form message and Polly will route it through the same pipeline.
       </p>
     </div>
+
+    <!-- Free customer/order picker — load any persona, not just the scenarios -->
+    <div class="rh-chat__picker-bar">
+      <div class="rh-chat__scenarios-head">
+        <span class="eyebrow">Free picker — speak as any customer</span>
+        <span class="hint">pick a customer and one of their orders → CRM context loads on the left, then type freely</span>
+      </div>
+      <div class="rh-chat__picker">
+        <label class="rh-chat__picker-field">
+          <span>Customer</span>
+          <select id="rh-chat-cust-select">
+            <option value="">— choose a customer —</option>
+            {% for c in all_customers %}
+              <option value="{{ c.id }}"
+                data-tier="{{ c.tier }}"
+                data-abuse="{{ '1' if c.flagged_for_abuse else '0' }}"
+                data-chargeback="{{ '1' if c.active_chargeback else '0' }}">
+                {{ c.id }} · {{ c.name }} · {{ c.tier|upper }}{% if c.flagged_for_abuse %} ⚠ abuse{% endif %}{% if c.active_chargeback %} ⚠ chargeback{% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="rh-chat__picker-field">
+          <span>Order</span>
+          <select id="rh-chat-order-select" disabled>
+            <option value="">— choose a customer first —</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <!-- Embed customers + orders for the JS picker to read without an API round-trip -->
+    <script type="application/json" id="rh-crm-customers">{{ all_customers|tojson }}</script>
+    <script type="application/json" id="rh-crm-orders">{{ all_orders|tojson }}</script>
 
     <!-- Scenario chips, full-width above the two-col layout -->
     <div class="rh-chat__scenarios-bar">
