@@ -1000,6 +1000,17 @@ section { padding: var(--section-pad) 0; border-bottom: 1px solid var(--rule); }
   border-color: var(--ink);
   transform: translate(-1px, -1px);
 }
+.artifact--accent {
+  border-color: var(--blueprint);
+  border-left: 3px solid var(--blueprint);
+  background: linear-gradient(135deg, rgba(31, 79, 122, 0.04), var(--paper) 60%);
+}
+.artifact--accent .artifact__id { color: var(--blueprint); }
+.artifact--accent:hover {
+  border-color: var(--blueprint);
+  border-left-color: var(--blueprint);
+  box-shadow: 0 6px 24px -12px rgba(31, 79, 122, 0.35);
+}
 .artifact__id {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -1243,6 +1254,23 @@ section#rules { background: var(--surface); padding-top: 88px; padding-bottom: 2
   letter-spacing: 0.08em;
 }
 .topbar__cta:hover { background: var(--ink); border-color: var(--ink); }
+
+.topbar__github {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--grid);
+  border-radius: 2px;
+  color: var(--ink-2) !important;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.topbar__github:hover { border-color: var(--ink); color: var(--ink) !important; }
+.topbar__github svg { display: block; }
 
 section.contact {
   padding: 64px 0 24px;
