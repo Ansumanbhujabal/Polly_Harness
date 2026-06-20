@@ -7,7 +7,7 @@ sdk: docker
 app_port: 7860
 pinned: true
 license: mit
-short_description: Harness-engineered AI refund agent — 9 layers, 21 evals, 88.6%
+short_description: 9-layer harness-engineered AI refund agent
 ---
 
 # Polly Harness — production-grade AI customer support agent
