@@ -49,7 +49,18 @@ COPY --chown=appuser:appuser data/ ./data/
 COPY --chown=appuser:appuser scripts/ ./scripts/
 COPY --chown=appuser:appuser prompts/ ./prompts/
 COPY --chown=appuser:appuser skills/ ./skills/
+COPY --chown=appuser:appuser frontend/ ./frontend/
+COPY --chown=appuser:appuser eval/ ./eval/
 COPY --chown=appuser:appuser agentic.md ./agentic.md
+COPY --chown=appuser:appuser README.md ./README.md
+
+# Ensure the embedded Qdrant local path is writable by appuser
+RUN mkdir -p /tmp/qdrant_local && chown -R appuser:appuser /tmp/qdrant_local
+
+# HF Spaces injects QDRANT_URL via secret only if set; the default below
+# forces embedded mode so the Space works without an external Qdrant.
+ENV QDRANT_URL="" \
+    QDRANT_LOCAL_PATH="/tmp/qdrant_local"
 
 USER appuser
 
