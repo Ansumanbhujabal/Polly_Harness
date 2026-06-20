@@ -161,7 +161,7 @@
     row.innerHTML =
       `<div class="rh-chat__bubble rh-chat__bubble--bot">` +
       `<span class="rh-chat__typing"><span></span><span></span><span></span>` +
-      `<em>&nbsp;agent is thinking — running through 9 layers…</em></span>` +
+      `<em>&nbsp;Polly is thinking — running through 9 layers…</em></span>` +
       `</div>`;
     messagesEl.appendChild(row);
     scrollToBottom();

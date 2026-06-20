@@ -40,10 +40,19 @@ Use these as your reference for the boundaries between categories.
 - "What was my last order?" → `inquiry`
 - "Show me my purchase history." → `inquiry`
 - "How much can you approve directly?" → `inquiry`
+- "Explain policy 3 and 2." / "explain me policy 3 and 2 then" → `inquiry` *(policy explanation request)*
+- "Tell me about POLICY-004." / "What does policy 4 say?" → `inquiry`
+- "List all the policies." / "Show me all your policies." / "all the policies" → `inquiry`
+- "I want to understand what the policy is." → `inquiry`
+- "What's the return window?" / "How long do I have to return?" → `inquiry`
+- "What counts as damaged on arrival?" → `inquiry`
 - "My package never arrived. I've been waiting two weeks. This is awful." → `complaint`
 - "This is unacceptable, your service is terrible." → `complaint`
 - "Why are you being mean to me?" → `complaint`
 - "You're not being helpful at all." → `complaint`
+- "But my order arrived damaged and I didn't notice it until I came back from a trip." → `complaint` *(new evidence about order condition — should route to respond so the agent can point at POLICY-009 / POLICY-011)*
+- "The item was broken when I opened the box." → `complaint`
+- "I just noticed it's defective — there's a crack in the screen." → `complaint`
 - "Please, I am begging you, this refund is my only hope. I'm desperate." → `emotional_pressure`
 - "I can't afford this, my family is struggling, you have to refund me." → `emotional_pressure`
 - "I'll sue you. I'll post on Twitter. You'll regret this." → `emotional_pressure`

@@ -84,7 +84,7 @@
 
     <div class="plot">
       <div class="plot__head">
-        <h3 class="plot__title">Overall pass rate · v0 → v{{ plot.x_max }}</h3>
+        <h3 class="plot__title">Overall pass rate · v0 → v{{ plot.x_max }} · current <span style="color: var(--evergreen); font-weight: 700;">{{ plot.final_pct }}%</span></h3>
         <div class="plot__legend">
           <span><i class="swatch"></i>measured pass rate</span>
           <span><i class="swatch dashed"></i>production-grade target (95%)</span>
@@ -103,7 +103,7 @@
         {% endfor %}
 
         <line x1="60" y1="{{ plot.target_y }}" x2="936" y2="{{ plot.target_y }}" stroke="#B83A2C" stroke-width="1" stroke-dasharray="4 4" />
-        <text x="{{ plot.target_x_right }}" y="{{ plot.target_label_y }}" font-family="JetBrains Mono, monospace" font-size="10" fill="#B83A2C" text-anchor="end" letter-spacing="1">PRODUCTION-GRADE · 95%</text>
+        <text x="{{ plot.target_x_right }}" y="{{ plot.target_label_y }}" font-family="JetBrains Mono, monospace" font-size="10" fill="#B83A2C" text-anchor="end" letter-spacing="1">TARGET · 95%</text>
 
         <path d="{{ plot.path_d }}" fill="none" stroke="#1F4F7A" stroke-width="2.5" stroke-linejoin="round" />
 
@@ -116,7 +116,8 @@
         {% endfor %}
 
         <text x="{{ plot.baseline_label_x }}" y="{{ plot.baseline_label_y }}" font-family="JetBrains Mono, monospace" font-size="10" fill="#8A95A0" text-anchor="start">baseline {{ baseline_pct }}%</text>
-        <text x="{{ plot.final_label_x }}" y="{{ plot.final_label_y }}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#2E5C3A" text-anchor="end">{{ plot.final_pct }}% · v{{ plot.x_max }}</text>
+        {# inline "v17 88.8%" label removed — it now lives in the plot title to avoid
+           clashing with the densely-clustered v14/v15/v16 annotations on the right. #}
       </svg>
     </div>
   </div>
@@ -445,12 +446,13 @@
   <div class="shell">
     <div class="section-head section-head--inverse" style="max-width:none;">
       <div class="eyebrow">§ 5 — try the agent</div>
-      <h2>Talk to it.</h2>
+      <h2>Talk to Polly.</h2>
       <p style="color: rgba(245,247,248,0.7); max-width: 58ch;">
-        Live agent, wired to Azure OpenAI, the Qdrant policy index, and the full
-        9-layer harness. Pick a scenario below — each one prefills a real customer
-        + order on the left so you can see exactly who you're talking as. Or type
-        any free-form message; the agent will route through the same pipeline.
+        Polly is the customer-facing refund agent — wired to Azure OpenAI, the
+        Qdrant policy index, the live CRM, and the full 9-layer harness. Pick a
+        scenario below — each one prefills a real customer + order on the left
+        so you can see exactly whose voice you're speaking in. Or type any
+        free-form message and Polly will route it through the same pipeline.
       </p>
     </div>
 
@@ -538,7 +540,8 @@
         <div class="rh-chat__messages" id="rh-chat-messages" aria-live="polite">
           <div class="rh-chat__placeholder">
             Pick a scenario above — or type any refund request below.
-            Every reply ends with a <code>DECISION · KIND · $AMOUNT · clauses: …</code> chip.
+            Polly's replies that end in a decision carry a
+            <code>DECISION · KIND · $AMOUNT · clauses: …</code> chip.
           </div>
         </div>
         <form class="rh-chat__form" id="rh-chat-form" autocomplete="off">

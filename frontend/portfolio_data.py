@@ -310,6 +310,11 @@ def plot_geometry() -> dict[str, Any]:
             # Stack the labels BELOW the point — anno on the lower line.
             anno_y = round(cy + 30, 2)
             delta_y = round(cy + 18, 2)
+        elif p["pct"] >= 85:
+            # Above-the-line labels for points already near the 95% target line
+            # need extra clearance so "+2.9pp" doesn't kiss the dashed target.
+            anno_y = round(cy - 44, 2)
+            delta_y = round(cy - 30, 2)
         else:
             # Stack the labels ABOVE the point — anno on the upper line.
             anno_y = round(cy - 30, 2)
