@@ -51,6 +51,7 @@ Verdict thresholds from `eval/thresholds.yaml`. A run that hits all of these is 
 | **v14** | 2026-06-19 10:33 | A6 axis-judge restructure — tone_appropriate only | FAIL (IMPROVED Δ) | **77.6%** (+7.4pp; **A6 0% → 45.5%, C1 → 100%**) | [v14_findings.md](runs/v14_findings.md) |
 | **v15** | 2026-06-19 15:55 | conversational short-circuit + LLM-driven respond + emotional_pressure→escalate invariant | FAIL (IMPROVED Δ, A3 regressed -2.7pp) | **85.9%** (+8.3pp; **A6 45.5% → 93.9%, C6 45.5% → 93.9%, A4 → 100%, C2 → 100%, C4 → 100%**) | [v15_findings.md](runs/v15_findings.md) |
 | **v16** | 2026-06-19 18:39 | intent_classifier prompt: conversation-poisoning + fake-policy + invented-system-state few-shot examples | FAIL (IMPROVED Δ) | **88.8%** (+2.9pp; **A3 90.7% → 98.7% PASS, C3 81.8% → 100%, A6 → 97%, three safety axes pass simultaneously for first time**) | [v16_findings.md](runs/v16_findings.md) |
+| **v17** | 2026-06-20 01:15 | intent_classifier prompt: CoT-leak / internal-state exfiltration examples | FAIL (TARGETED HIT, A3 -1.3pp from stochastic ROT-13 content-filter noise) | **88.8%** (+0.0pp; **A4 98.3% → 100% PASS, C4 96% → 100%, C4c sub-category closed; A3 noise is non-attributable**) | [v17_findings.md](runs/v17_findings.md) |
 | v7 | _pending_ | C6 tone — escalation node empathy preamble | — | — | — |
 | v8 | _pending_ | latency — parallelize independent nodes + enable semantic cache | — | — | — |
 
