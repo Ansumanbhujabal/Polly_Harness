@@ -25,18 +25,25 @@ LOG_PATH = REPO_ROOT / "eval" / "IMPROVEMENT_LOG.md"
 # --------------------------------------------------------------------------- #
 
 # Big-jump annotations come from the IMPROVEMENT_LOG.md story — these are the
-# inflection points the postmortem highlights.
+# inflection points the postmortem highlights. Kept short so they don't
+# overlap on the clustered right side of the trajectory plot.
 _ANNOTATIONS: dict[int, str] = {
     3: "judge interface",
     4: "runner dict-return",
     5: "real L9 LLM-judge",
-    8: "interrupt-state response",
+    8: "interrupt-state",
     13: "intake length-guard",
     14: "A6 axis-restructure",
-    15: "LLM respond + short-circuit",
-    16: "poisoning + fake-policy examples",
+    15: "LLM respond",
+    16: "poisoning gate",
 }
 _BIG_JUMP_VERSIONS = {5, 8, 14, 15, 16}
+
+# To prevent overlapping labels on the densely clustered right side of the
+# plot (v13 / v14 / v15 / v16 sit 50px apart), alternate the annotation
+# vertical offset — odd indices go ABOVE the point, even indices go BELOW.
+# The plot_geometry function consumes this map to set anno_y / delta_y.
+_LABEL_BELOW: set[int] = {13, 15}
 
 
 def _versions_present() -> list[int]:
@@ -295,20 +302,30 @@ def plot_geometry() -> dict[str, Any]:
     else:
         path_d = ""
 
-    points = [
-        {
+    points = []
+    for p in traj:
+        below = p["i"] in _LABEL_BELOW
+        cy = _plot_y(p["pct"])
+        if below:
+            # Stack the labels BELOW the point — anno on the lower line.
+            anno_y = round(cy + 30, 2)
+            delta_y = round(cy + 18, 2)
+        else:
+            # Stack the labels ABOVE the point — anno on the upper line.
+            anno_y = round(cy - 30, 2)
+            delta_y = round(cy - 16, 2)
+        points.append({
             "v": p["i"],
             "cx": round(_plot_x(p["i"], x_max), 2),
-            "cy": round(_plot_y(p["pct"]), 2),
+            "cy": round(cy, 2),
             "big": p["is_big_jump"],
             "anno": p["annotation"],
             "delta": p["delta_pp"],
             "pct": p["pct"],
-            "anno_y": round(_plot_y(p["pct"]) - 30, 2),
-            "delta_y": round(_plot_y(p["pct"]) - 16, 2),
-        }
-        for p in traj
-    ]
+            "anno_y": anno_y,
+            "delta_y": delta_y,
+            "label_below": below,
+        })
 
     target_y = round(_plot_y(95.0), 2)
     target_label_y = round(target_y - 6, 2)
@@ -325,8 +342,10 @@ def plot_geometry() -> dict[str, Any]:
         "target_x_right": _PLOT_R - 4,
         "baseline_label_x": round(_plot_x(1, x_max), 2),
         "baseline_label_y": round(_plot_y(28.3) + 22, 2),
+        # Tuck the final-label well below the v16 annotation cluster so it
+        # doesn't overlap with "poisoning gate" / "+2.9pp".
         "final_label_x": round(_plot_x(last_v, x_max) - 4, 2),
-        "final_label_y": round(_plot_y(last_pct) - 14, 2),
+        "final_label_y": round(_plot_y(last_pct) + 26, 2),
         "final_pct": last_pct,
         "x_max": x_max,
         "viewbox_w": _PLOT_W,
