@@ -37,10 +37,14 @@ class Settings(BaseSettings):
     PROMPT_CACHE_TTL_SECONDS: int = 300
     LANGFUSE_PROMPT_AUTOSYNC: bool = False
 
-    # Qdrant
+    # Qdrant — when QDRANT_URL is empty, ":memory:", or "embedded", the app
+    # uses an on-disk embedded client at QDRANT_LOCAL_PATH (works on HF Spaces
+    # free tier with no external Qdrant service). When it's an http://... URL,
+    # the standard HTTP client is used (production / docker-compose dev).
     QDRANT_URL: str = "http://localhost:6333"
     QDRANT_API_KEY: str = ""
     QDRANT_COLLECTION_POLICY: str = "refund_policy_v1"
+    QDRANT_LOCAL_PATH: str = "/tmp/qdrant_local"
 
     # Durable state
     SQLITE_PATH: str = "data/state.db"
@@ -71,6 +75,20 @@ class Settings(BaseSettings):
     @property
     def sqlite_full_path(self) -> Path:
         return REPO_ROOT / self.SQLITE_PATH
+
+    @property
+    def qdrant_embedded(self) -> bool:
+        """True when running the embedded (on-disk) Qdrant client — no HTTP."""
+        url = (self.QDRANT_URL or "").strip()
+        return url in ("", ":memory:", "embedded")
+
+    @property
+    def qdrant_local_path(self) -> Path:
+        """The on-disk path the embedded Qdrant uses. Absolute, created on demand."""
+        p = Path(self.QDRANT_LOCAL_PATH).expanduser()
+        if not p.is_absolute():
+            p = REPO_ROOT / p
+        return p
 
     @property
     def azure_configured(self) -> bool:

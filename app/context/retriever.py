@@ -27,6 +27,30 @@ logger = get_logger(__name__)
 _retriever_singleton: "PolicyRetriever | None" = None
 
 
+def _build_qdrant_client() -> Any:
+    """Construct the QdrantClient based on QDRANT_URL.
+
+    Three modes:
+      - Empty / ":memory:" / "embedded" → embedded mode (on-disk under
+        settings.QDRANT_LOCAL_PATH). State is shared across modules in the
+        same process — both the retriever and the seed step talk to the same
+        store. Ephemeral on HF Spaces; persistent under data/qdrant_local/
+        in local dev.
+      - http://… or https://… → remote HTTP client (production / dev with
+        docker-compose Qdrant).
+      - Anything else → assume URL.
+    """
+    url = (settings.QDRANT_URL or "").strip()
+    if url in ("", ":memory:", "embedded"):
+        local_path = str(settings.qdrant_local_path)
+        logger.info("qdrant_embedded_mode", extra={"path": local_path})
+        return QdrantClient(path=local_path)
+    return QdrantClient(
+        url=url,
+        api_key=settings.QDRANT_API_KEY or None,
+    )
+
+
 class PolicyRetriever:
     """Wraps fastembed + Qdrant to return list[PolicyClause] for a query string.
 
@@ -36,10 +60,7 @@ class PolicyRetriever:
 
     def __init__(self) -> None:
         self._embed_model: Any = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
-        self._client: Any = QdrantClient(
-            url=settings.QDRANT_URL,
-            api_key=settings.QDRANT_API_KEY or None,
-        )
+        self._client: Any = _build_qdrant_client()
         self._collection = settings.QDRANT_COLLECTION_POLICY
         self._verify_collection()
 

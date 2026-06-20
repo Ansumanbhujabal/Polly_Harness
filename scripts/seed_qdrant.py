@@ -113,12 +113,19 @@ def _embed_chunks(chunks: list[dict[str, str]]) -> list[list[float]]:
 
 
 def _build_client():
-    """Return a QdrantClient connected to settings.QDRANT_URL."""
+    """Return a QdrantClient — embedded when QDRANT_URL is unset, HTTP otherwise.
+
+    Same selection logic as app.context.retriever._build_qdrant_client so the
+    seed step and the retriever point at the same store.
+    """
     from qdrant_client import QdrantClient  # type: ignore[import]
 
     from app.config import settings
 
-    return QdrantClient(url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY or None)
+    url = (settings.QDRANT_URL or "").strip()
+    if url in ("", ":memory:", "embedded"):
+        return QdrantClient(path=str(settings.qdrant_local_path))
+    return QdrantClient(url=url, api_key=settings.QDRANT_API_KEY or None)
 
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -1,3 +1,15 @@
+---
+title: Polly Harness
+emoji: 🦜
+colorFrom: blue
+colorTo: gray
+sdk: docker
+app_port: 7860
+pinned: true
+license: mit
+short_description: Harness-engineered AI refund agent — 9 layers, 21 evals, 88.6%
+---
+
 # Polly Harness — production-grade AI customer support agent
 
 > *"The reliability of an LLM-powered system is not the model. It is the harness around the model."*

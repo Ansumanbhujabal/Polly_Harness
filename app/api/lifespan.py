@@ -39,12 +39,47 @@ logger = logging.getLogger(__name__)
 
 
 async def _check_qdrant_health() -> None:
-    """Issue a single GET /healthz to the configured Qdrant URL.
+    """Verify Qdrant is reachable.
 
-    Raises RuntimeError if the response status is not 2xx.
-    A "collection missing" situation (404 on a specific collection endpoint) is
-    treated as a WARN — seeding is a developer concern, not a runtime crash.
+    Two modes:
+      - Embedded (settings.qdrant_embedded is True) — no network. Ensure the
+        local-path directory exists and auto-seed the policy collection if
+        it's missing. This is the HF Spaces path.
+      - HTTP — GET /healthz against settings.QDRANT_URL. Raises if not 2xx.
     """
+    if settings.qdrant_embedded:
+        # On-disk embedded client. Probe for the collection by filesystem
+        # (qdrant-client's local mode lays it out as
+        # <path>/collection/<name>/storage.sqlite). This avoids opening a
+        # QdrantClient during the check — local mode holds an exclusive
+        # file lock that would block the seed step's own client.
+        local_path = settings.qdrant_local_path
+        local_path.mkdir(parents=True, exist_ok=True)
+        collection_marker = (
+            local_path / "collection" / settings.QDRANT_COLLECTION_POLICY / "storage.sqlite"
+        )
+        if collection_marker.exists():
+            logger.info(
+                "qdrant_embedded_collection_present",
+                extra={"collection": settings.QDRANT_COLLECTION_POLICY},
+            )
+            return
+        try:
+            from scripts.seed_qdrant import seed
+
+            logger.info(
+                "qdrant_embedded_seeding",
+                extra={"collection": settings.QDRANT_COLLECTION_POLICY},
+            )
+            seed()
+            logger.info("qdrant_embedded_seed_ok")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "qdrant_embedded_seed_failed",
+                extra={"error": str(exc)},
+            )
+        return
+
     url = settings.QDRANT_URL.rstrip("/") + "/healthz"
     async with httpx.AsyncClient(timeout=5.0) as client:
         try:
