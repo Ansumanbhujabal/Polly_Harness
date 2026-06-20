@@ -36,14 +36,18 @@ _ANNOTATIONS: dict[int, str] = {
     14: "A6 axis-restructure",
     15: "LLM respond",
     16: "poisoning gate",
+    18: "Polly + policy doc",
+    19: "English-only clamp",
+    20: "C7 coverage added",
+    21: "translation-fake escalate",
 }
-_BIG_JUMP_VERSIONS = {5, 8, 14, 15, 16}
+_BIG_JUMP_VERSIONS = {5, 8, 14, 15, 16, 18}
 
 # To prevent overlapping labels on the densely clustered right side of the
-# plot (v13 / v14 / v15 / v16 sit 50px apart), alternate the annotation
-# vertical offset — odd indices go ABOVE the point, even indices go BELOW.
-# The plot_geometry function consumes this map to set anno_y / delta_y.
-_LABEL_BELOW: set[int] = {13, 15}
+# plot, alternate the annotation vertical offset — listed iterations go
+# BELOW the point, the others go ABOVE. The plot_geometry function consumes
+# this map to set anno_y / delta_y.
+_LABEL_BELOW: set[int] = {13, 15, 19, 21}
 
 
 def _versions_present() -> list[int]:
@@ -259,11 +263,13 @@ _PLOT_T = 28   # top padding
 _PLOT_B = 332  # bottom edge (x-axis line)
 
 
-# Public-surface trajectory cap. v18 is the production-grade baseline (per
-# eval/PRODUCTION_GRADE_POSTMORTEM). Later runs (v19, v20, ...) are kept in
-# the audit trail at eval/runs/, but the headline plot stops at v18 so the
-# public surface isn't muddied by stochastic ROT-13 noise on a single case.
-_DISPLAY_MAX_VERSION: int | None = 18
+# Public-surface trajectory cap. The plot ends at this version.
+# v18 is the production-grade baseline (per PRODUCTION_GRADE_POSTMORTEM);
+# v19-v21 are surfaced too because they tell the translation-jailbreak
+# subplot story: v19 added the English-only clamp without eval coverage,
+# v20 added the C7 category to measure it (95.8% first-measurement),
+# v21 closed C7b-008 (the translation-wrapped fake decision attack).
+_DISPLAY_MAX_VERSION: int | None = 21
 
 
 def _x_max() -> int:
