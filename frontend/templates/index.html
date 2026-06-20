@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Refund Harness — measured production-grade AI customer support</title>
-<meta name="description" content="A 9-layer harness-engineered AI refund agent. 14 measured eval iterations, +49.3pp cumulative pass-rate, dollar-attributed safety bugs closed.">
+<meta name="description" content="A 9-layer harness-engineered AI refund agent. 17 measured eval iterations, +60.5pp cumulative pass-rate, three production-grade safety axes passing, dollar-attributed safety bugs closed.">
 <link rel="stylesheet" href="/static/portfolio.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,7 +42,7 @@
 
     <p class="hero__sub">
       A 9-layer harness-engineered AI customer support agent for e-commerce refunds.
-      Fourteen measured eval iterations over a 205-case adversarial suite — pass rate
+      {{ n_iterations }} measured eval iterations over a 205-case adversarial suite — pass rate
       moved {{ baseline_pct }}% → {{ current_pct }}%, with every percentage point
       attributable to a single named change. Three of the first four jumps were
       infrastructure fixes the eval surfaced before any agent prompt was touched.
@@ -51,7 +51,7 @@
     <div class="hero__metrics">
       <div class="metric">
         <div class="metric__value delta-pos">+{{ delta_overall_pp }}pp</div>
-        <div class="metric__label">cumulative v1 → v14</div>
+        <div class="metric__label">cumulative v1 → v{{ plot.x_max }}</div>
       </div>
       <div class="metric">
         <div class="metric__value">{{ n_iterations }}</div>
@@ -74,7 +74,7 @@
   <div class="shell">
     <div class="section-head">
       <div class="eyebrow">§ 1 — trajectory</div>
-      <h2>Fourteen iterations, plotted.</h2>
+      <h2>{{ n_iterations }} iterations, plotted.</h2>
       <p>
         Each step on this plot is one named intervention. Flat segments are NEUTRAL
         results — each pointed at the correct next intervention. The dashed line is
@@ -84,14 +84,14 @@
 
     <div class="plot">
       <div class="plot__head">
-        <h3 class="plot__title">Overall pass rate · v0 → v14</h3>
+        <h3 class="plot__title">Overall pass rate · v0 → v{{ plot.x_max }}</h3>
         <div class="plot__legend">
           <span><i class="swatch"></i>measured pass rate</span>
           <span><i class="swatch dashed"></i>production-grade target (95%)</span>
         </div>
       </div>
 
-      <svg viewBox="0 0 {{ plot.viewbox_w }} {{ plot.viewbox_h }}" preserveAspectRatio="xMidYMid meet" aria-label="Trajectory plot v1 to v14">
+      <svg viewBox="0 0 {{ plot.viewbox_w }} {{ plot.viewbox_h }}" preserveAspectRatio="xMidYMid meet" aria-label="Trajectory plot v1 to v{{ plot.x_max }}">
         {% for t in plot.y_ticks %}
           <line x1="60" y1="{{ t.y }}" x2="936" y2="{{ t.y }}" stroke="#E1E5E8" stroke-width="1" />
           <text x="48" y="{{ t.y + 4 }}" font-family="JetBrains Mono, monospace" font-size="11" fill="#8A95A0" text-anchor="end">{{ t.label }}</text>
@@ -116,7 +116,7 @@
         {% endfor %}
 
         <text x="{{ plot.baseline_label_x }}" y="{{ plot.baseline_label_y }}" font-family="JetBrains Mono, monospace" font-size="10" fill="#8A95A0" text-anchor="start">baseline {{ baseline_pct }}%</text>
-        <text x="{{ plot.final_label_x }}" y="{{ plot.final_label_y }}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#2E5C3A" text-anchor="end">{{ plot.final_pct }}% · v{{ n_iterations }}</text>
+        <text x="{{ plot.final_label_x }}" y="{{ plot.final_label_y }}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#2E5C3A" text-anchor="end">{{ plot.final_pct }}% · v{{ plot.x_max }}</text>
       </svg>
     </div>
   </div>
@@ -132,7 +132,7 @@
         The eval suite generates ~200 synthetic adversarial cases across six attack
         categories, plus five hand-curated demo cases. Each category measures a
         distinct class of failure the harness is built to catch. Bars compare v1
-        baseline to v14 current; target is 95% pass.
+        baseline to v{{ plot.x_max }} current; target is 95% pass.
       </p>
     </div>
 
@@ -146,8 +146,8 @@
         <div class="cat__row muted"><span>v1 baseline</span><span>{{ c.v1 }}%</span></div>
         <div class="cat__bar"><div class="cat__bar-fill v1" style="width: {{ c.v1 }}%"></div></div>
 
-        <div class="cat__row"><span>v14 current</span><span>{{ c.v14 }}%</span></div>
-        <div class="cat__bar"><div class="cat__bar-fill" style="width: {{ c.v14 }}%"></div></div>
+        <div class="cat__row"><span>{{ c.v_label }} current</span><span>{{ c.v_now }}%</span></div>
+        <div class="cat__bar"><div class="cat__bar-fill" style="width: {{ c.v_now }}%"></div></div>
 
         <div class="cat__row" style="margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--grid);">
           <span class="cat__delta">+{{ c.delta_pp }}pp</span>
@@ -168,7 +168,7 @@
       <p>
         These are not synthetic. They are the literal user messages the eval runs
         against the agent, the literal decisions the v1 agent returned, and the
-        literal decisions the v14 agent returns now. The eval named the bug, named
+        literal decisions the v{{ plot.x_max }} agent returns now. The eval named the bug, named
         the dollars, named the fix, and proved the fix.
       </p>
     </div>
@@ -182,7 +182,7 @@
         <div class="case__line"><span class="case__line-label">customer</span><span class="case__line-val">{{ case.customer_id }}</span></div>
         <div class="case__line"><span class="case__line-label">order</span><span class="case__line-val">{{ case.order_id }}</span></div>
         <div class="case__line"><span class="case__line-label">v1 outcome</span><span class="case__line-val was">{{ case.v1_outcome }}</span></div>
-        <div class="case__line"><span class="case__line-label">v14 outcome</span><span class="case__line-val now">{{ case.v14_outcome }}</span></div>
+        <div class="case__line"><span class="case__line-label">v{{ plot.x_max }} outcome</span><span class="case__line-val now">{{ case.v14_outcome }}</span></div>
 
         <span class="case__amount">${{ case.amount }}</span>
         <div class="case__amount-label">unauthorized refund blocked</div>
@@ -612,7 +612,7 @@
       <a class="artifact" href="#evidence">
         <div class="artifact__id">DOC · POSTMORTEM</div>
         <h3 class="artifact__name">Production-grade postmortem</h3>
-        <p class="artifact__desc">v1 → v14 synthesized. What made the system production level.</p>
+        <p class="artifact__desc">v1 → v{{ plot.x_max }} synthesized. What made the system production level.</p>
       </a>
     </div>
   </div>

@@ -33,8 +33,10 @@ _ANNOTATIONS: dict[int, str] = {
     8: "interrupt-state response",
     13: "intake length-guard",
     14: "A6 axis-restructure",
+    15: "LLM respond + short-circuit",
+    16: "poisoning + fake-policy examples",
 }
-_BIG_JUMP_VERSIONS = {5, 8, 14}
+_BIG_JUMP_VERSIONS = {5, 8, 14, 15, 16}
 
 
 def _versions_present() -> list[int]:
@@ -141,7 +143,12 @@ def _category_pct(version: int, cat_id: str) -> float | None:
 
 
 def categories() -> list[dict[str, Any]]:
-    """Return list of {id, name, desc, v1, v14, delta_pp} for the six adversarial categories."""
+    """Return list of {id, name, desc, v1, v_now, v_label, delta_pp} for the six adversarial categories.
+
+    `v_label` is the latest version on disk as a string ("v17"). `v_now` is the
+    most recent pass rate. `v14` is kept as an alias for backward template
+    compatibility but points at the latest run too.
+    """
     versions = _versions_present()
     if not versions:
         return []
@@ -150,14 +157,17 @@ def categories() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for cid, defn in _CATEGORY_DEFS.items():
         v1 = _category_pct(first, cid) or 0.0
-        v14 = _category_pct(last, cid) or 0.0
+        v_now = _category_pct(last, cid) or 0.0
         rows.append({
             "id": cid,
             "name": defn["name"],
             "desc": defn["desc"],
             "v1": v1,
-            "v14": v14,
-            "delta_pp": round(v14 - v1, 1),
+            "v_now": v_now,
+            "v_label": f"v{last}",
+            # backward-compat aliases — older template fragments may still read v14
+            "v14": v_now,
+            "delta_pp": round(v_now - v1, 1),
         })
     return rows
 
@@ -235,9 +245,18 @@ _PLOT_T = 28   # top padding
 _PLOT_B = 332  # bottom edge (x-axis line)
 
 
-def _plot_x(i: int) -> float:
-    """Map iteration index 0..14 to plot x coordinate."""
-    return _PLOT_L + (i / 14.0) * (_PLOT_R - _PLOT_L)
+def _x_max() -> int:
+    """The highest version index present on disk — defines the x-axis scale."""
+    versions = _versions_present()
+    return max(versions) if versions else 14
+
+
+def _plot_x(i: int, x_max: int | None = None) -> float:
+    """Map iteration index 0..x_max to plot x coordinate."""
+    span = x_max if x_max is not None else _x_max()
+    if span <= 0:
+        span = 14
+    return _PLOT_L + (i / float(span)) * (_PLOT_R - _PLOT_L)
 
 
 def _plot_y(pct: float) -> float:
@@ -252,24 +271,25 @@ def plot_geometry() -> dict[str, Any]:
       - `path_d`: the SVG path d= attribute (step function across all points)
       - `points`: list of {cx, cy, big, anno, delta, pct, v}
       - `y_ticks`: list of {label, y} for 0/25/50/75/100%
-      - `x_ticks`: list of {label, x} for v0..v14
+      - `x_ticks`: list of {label, x} for v0..vN where N = max version on disk
       - `target_y`: y for the 95% production-grade line
       - `baseline_label_x`, `baseline_label_y`
       - `final_label_x`, `final_label_y`
     """
     traj = trajectory()  # list of {i, pct, delta_pp, annotation, is_big_jump}
+    x_max = _x_max()
 
     # Y axis ticks
     y_ticks = [{"label": f"{p}%", "y": round(_plot_y(p), 2)} for p in (0, 25, 50, 75, 100)]
-    # X axis ticks v0..v14
-    x_ticks = [{"label": f"v{i}", "x": round(_plot_x(i), 2)} for i in range(15)]
+    # X axis ticks v0..vN
+    x_ticks = [{"label": f"v{i}", "x": round(_plot_x(i, x_max), 2)} for i in range(x_max + 1)]
 
     # Step-function path: each point sets a new horizontal level
     if traj:
         first = traj[0]
-        d_parts: list[str] = [f"M {_plot_x(first['i']):.2f} {_plot_y(first['pct']):.2f}"]
+        d_parts: list[str] = [f"M {_plot_x(first['i'], x_max):.2f} {_plot_y(first['pct']):.2f}"]
         for p in traj[1:]:
-            d_parts.append(f"H {_plot_x(p['i']):.2f}")
+            d_parts.append(f"H {_plot_x(p['i'], x_max):.2f}")
             d_parts.append(f"V {_plot_y(p['pct']):.2f}")
         path_d = " ".join(d_parts)
     else:
@@ -278,7 +298,7 @@ def plot_geometry() -> dict[str, Any]:
     points = [
         {
             "v": p["i"],
-            "cx": round(_plot_x(p["i"]), 2),
+            "cx": round(_plot_x(p["i"], x_max), 2),
             "cy": round(_plot_y(p["pct"]), 2),
             "big": p["is_big_jump"],
             "anno": p["annotation"],
@@ -292,7 +312,7 @@ def plot_geometry() -> dict[str, Any]:
 
     target_y = round(_plot_y(95.0), 2)
     target_label_y = round(target_y - 6, 2)
-    last_v = traj[-1]["i"] if traj else 14
+    last_v = traj[-1]["i"] if traj else x_max
     last_pct = traj[-1]["pct"] if traj else 0.0
 
     return {
@@ -303,11 +323,12 @@ def plot_geometry() -> dict[str, Any]:
         "target_y": target_y,
         "target_label_y": target_label_y,
         "target_x_right": _PLOT_R - 4,
-        "baseline_label_x": round(_plot_x(1), 2),
+        "baseline_label_x": round(_plot_x(1, x_max), 2),
         "baseline_label_y": round(_plot_y(28.3) + 22, 2),
-        "final_label_x": round(_plot_x(last_v) - 4, 2),
+        "final_label_x": round(_plot_x(last_v, x_max) - 4, 2),
         "final_label_y": round(_plot_y(last_pct) - 14, 2),
         "final_pct": last_pct,
+        "x_max": x_max,
         "viewbox_w": _PLOT_W,
         "viewbox_h": _PLOT_H,
     }
