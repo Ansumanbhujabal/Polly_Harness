@@ -13,8 +13,12 @@ RUN pip install uv
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev
+COPY pyproject.toml uv.lock README.md ./
+# --no-install-project: we only need the dependencies in the venv; the app
+# source is copied at runtime stage and run via `uvicorn app.api.main:app`.
+# Skipping project install also dodges hatch's readme-existence check during
+# metadata validation, which fails here unless README.md is also in the layer.
+RUN uv sync --frozen --no-dev --no-install-project
 
 # --- runtime stage ---
 FROM python:3.11-slim AS runtime
