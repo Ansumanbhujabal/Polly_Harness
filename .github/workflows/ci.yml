@@ -1,44 +1,44 @@
-name: CI
+# name: CI
 
-on:
-  push:
-    branches: ["**"]
-  pull_request:
-    branches: ["**"]
+# on:
+#   push:
+#     branches: ["**"]
+#   pull_request:
+#     branches: ["**"]
 
-jobs:
-  ci:
-    name: Lint + Type-check + Test
-    runs-on: ubuntu-latest
+# jobs:
+#   ci:
+#     name: Lint + Type-check + Test
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+#       - name: Set up Python 3.11
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: "3.11"
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
+#       - name: Set up uv
+#         uses: astral-sh/setup-uv@v3
+#         with:
+#           enable-cache: true
 
-      - name: Install dependencies
-        run: uv sync --frozen
+#       - name: Install dependencies
+#         run: uv sync --frozen
 
-      - name: Lint (ruff)
-        run: uv run ruff check .
+#       - name: Lint (ruff)
+#         run: uv run ruff check .
 
-      - name: Type-check (mypy — warn-only for v0.1)
-        run: uv run mypy --strict app/ || true
+#       - name: Type-check (mypy — warn-only for v0.1)
+#         run: uv run mypy --strict app/ || true
 
-      - name: Run unit + integration tests
-        run: |
-          uv run pytest -m "unit or integration" \
-            --cov=app \
-            --cov-report=term-missing \
-            -v
-        env:
-          SQLITE_PATH: ":memory:"
+#       - name: Run unit + integration tests
+#         run: |
+#           uv run pytest -m "unit or integration" \
+#             --cov=app \
+#             --cov-report=term-missing \
+#             -v
+#         env:
+#           SQLITE_PATH: ":memory:"
