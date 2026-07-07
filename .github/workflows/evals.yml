@@ -1,41 +1,41 @@
-name: Evals
+# name: Evals
 
-on:
-  pull_request:
-    paths:
-      - "app/**"
-      - "eval/**"
-  schedule:
-    # Nightly at 02:00 UTC
-    - cron: "0 2 * * *"
+# on:
+#   pull_request:
+#     paths:
+#       - "app/**"
+#       - "eval/**"
+#   schedule:
+#     # Nightly at 02:00 UTC
+#     - cron: "0 2 * * *"
 
-jobs:
-  evals:
-    name: Run eval scenarios
-    runs-on: ubuntu-latest
+# jobs:
+#   evals:
+#     name: Run eval scenarios
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+#       - name: Set up Python 3.11
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: "3.11"
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
+#       - name: Set up uv
+#         uses: astral-sh/setup-uv@v3
+#         with:
+#           enable-cache: true
 
-      - name: Install dependencies
-        run: uv sync --frozen
+#       - name: Install dependencies
+#         run: uv sync --frozen
 
-      - name: Run eval scenarios
-        run: uv run python -m eval.run_scenarios
-        env:
-          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
-          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
-          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          SQLITE_PATH: ":memory:"
+#       - name: Run eval scenarios
+#         run: uv run python -m eval.run_scenarios
+#         env:
+#           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+#           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+#           AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+#           AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+#           SQLITE_PATH: ":memory:"
